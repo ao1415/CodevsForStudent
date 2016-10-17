@@ -151,6 +151,7 @@
     <ClCompile Include="Simulator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AI.hpp" />
     <ClInclude Include="CGrid.hpp" />
     <ClInclude Include="Grid.hpp" />
     <ClInclude Include="Share.hpp" />

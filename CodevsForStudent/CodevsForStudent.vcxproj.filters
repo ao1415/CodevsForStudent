@@ -18,6 +18,9 @@
     <Filter Include="ソース ファイル\Simulator">
       <UniqueIdentifier>{93aaa582-c67e-4366-bb1c-08689621c3a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\AI">
+      <UniqueIdentifier>{319d5e6f-3cb4-4874-9c9c-16885243cee9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -45,6 +48,9 @@
     </ClInclude>
     <ClInclude Include="Simulator.hpp">
       <Filter>ソース ファイル\Simulator</Filter>
+    </ClInclude>
+    <ClInclude Include="AI.hpp">
+      <Filter>ソース ファイル\AI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

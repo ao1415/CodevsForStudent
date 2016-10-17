@@ -59,11 +59,12 @@ public:
 
 		int chain = 1;
 		int count = 0;
+		fall(next);
 		while ((count = disBlocks(next)) > 0)
 		{
-			fall(next);
 			score += (int)pow(1.3, chain)*(int)(count / 2);
 			chain++;
+			fall(next);
 		}
 
 		s = score;
@@ -76,6 +77,7 @@ public:
 
 		int chain = 1;
 		int count = 0;
+		fall(stage);
 		while ((count = disBlocks(stage)) > 0)
 		{
 			score += (int)pow(1.3, chain)*(int)(count / 2);
