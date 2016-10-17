@@ -59,7 +59,10 @@ public:
 		{
 			for (int x = 0; x < _Width; x++)
 			{
-				cerr << setw(2) << setfill(' ') << data[y*_Width + x] << ",";
+				if (data[y*_Width + x] != 0)
+					cerr << setw(2) << setfill(' ') << data[y*_Width + x] << ",";
+				else
+					cerr << "  ,";
 			}
 			cerr << endl;
 		}

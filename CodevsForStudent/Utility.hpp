@@ -16,6 +16,7 @@ type _get_##name()
 const int StageWidth = 10;
 const int StageHeight = 16;
 const int PackSize = 3;
+const int AddScore = 10;
 
 using PackArray = std::array<std::array<std::array<int, PackSize>, PackSize>, 4>;
 
@@ -113,4 +114,7 @@ inline std::basic_ostream<CharType>& operator << (std::basic_ostream<CharType>& 
 template <class CharType>
 inline std::basic_ostream<CharType>& operator << (std::basic_ostream<CharType>& os, const Point& p) { return os << CharType('(') << p.x << CharType(', ') << p.y << CharType(')'); }
 
-inline const bool inside(const Point& p) { return (0 <= p.x && p.x < StageWidth && 0 <= p.y && p.y < StageHeight); }
+//inline const bool inside(const Point& p) { return (0 <= p.x && p.x < StageWidth && 0 <= p.y && p.y < StageHeight); }
+
+//‚‚³‚ª+3‚³‚ê‚Ä‚¢‚é‚Ì‚Å’ˆÓ
+inline const bool inside(const Point& p) { return (0 <= p.x && p.x < StageWidth && 0 <= p.y && p.y < StageHeight + 3); }
