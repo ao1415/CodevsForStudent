@@ -23,7 +23,7 @@ public:
 	Grid& operator=(const Grid& other) = default;
 	Grid& operator=(Grid&& other) = default;
 
-	bool inBounds(size_t y, size_t x) const noexcept {
+	bool isBounds(size_t y, size_t x) const noexcept {
 		return (0 <= y && y < height && 0 <= x && x < width);
 	}
 

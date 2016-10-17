@@ -7,7 +7,7 @@ class CGrid {
 public:
 
 	CGrid() { this->fill(Type()); }
-	CGrid(const Type& val) { this->fill(val) }
+	CGrid(const Type& val) { this->fill(val); }
 
 	CGrid(const CGrid<Type, _Width, _Height>& g) = default;
 	CGrid(CGrid<Type, _Width, _Height>&& g) noexcept {
@@ -17,7 +17,7 @@ public:
 	CGrid<Type, _Width, _Height>& operator=(const CGrid<Type, _Width, _Height>& other) = default;
 	CGrid<Type, _Width, _Height>& operator=(CGrid<Type, _Width, _Height>&& other) = default;
 
-	bool inBounds(size_t y, size_t x) const noexcept {
+	bool isBounds(size_t y, size_t x) const noexcept {
 		return (0 <= y && y < _Height && 0 <= x && x < _Width);
 	}
 
