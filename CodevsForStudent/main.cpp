@@ -1,66 +1,83 @@
-#include "Grid.hpp"
+#include "Share.hpp"
+#include "Simulator.hpp"
 
-using namespace std;
-
-class Pack {
+class Input {
 public:
 
-	Pack() = default;
-	Pack(PackArray&& p) { blocks = move(p); }
-	Pack(Pack&& p) { blocks = move(p.blocks); }
+	static void first() {
+		int w, h, t, s;
+		cin >> w >> h >> t >> s >> Share::turn;
 
-	static Pack&& input() {
-		PackArray data;
-
-		for (int y = 0; y < PackSize; y++)
+		for (int i = 0; i < Share::turn; i++)
 		{
-			for (int x = 0; x < PackSize; x++)
+			Share::packs.emplace_back(Pack::input());
+		}
+	}
+
+	static bool loop() {
+		string endStr;
+
+		cin >> Share::now >> Share::time;
+
+		cin >> Share::myObstacle;
+		for (int y = 0; y < StageHeight; y++)
+		{
+			for (int x = 0; x < StageWidth; x++)
 			{
-				int block;
-				cin >> block;
-				data[0][y][x] = block;
+				cin >> Share::myStage[y + 3][x];
 			}
 		}
-
-		string endStr;
 		cin >> endStr;
 
-		for (int r = 1; r < 4; r++)
+		cin >> Share::enObstacle;
+		for (int y = 0; y < StageHeight; y++)
 		{
-			for (int y = 0; y < PackSize; y++)
+			for (int x = 0; x < StageWidth; x++)
 			{
-				for (int x = 0; x < PackSize; x++)
-				{
-					data[r][x][PackSize - 1 - y] = data[r - 1][y][x];
-				}
+				cin >> Share::enStage[y + 3][x];
 			}
 		}
+		cin >> endStr;
 
-		return Pack(move(data));
+		return endStr == "END";
 	}
-
-	void show() const {
-		for (int i = 0; i < 4; i++)
-		{
-			for (int y = 0; y < PackSize; y++)
-			{
-				for (int x = 0; x < PackSize; x++)
-				{
-
-				}
-			}
-		}
-	}
-
-private:
-
-	PackArray blocks;
 
 };
 
 int main() {
 
-	cout << "Hello World" << endl;
+	cout << "ao1415" << endl;
+	cout.flush();
+
+	StageArray dummy;
+	for (int y = 0; y < StageHeight; y++)
+	{
+		for (int x = 0; x < StageWidth; x++)
+		{
+			dummy[y + 3][x] = (x + y) % 2;
+		}
+	}
+
+	cerr << "ダミー初期" << endl;
+	dummy.show();
+	Simulator simu;
+	const auto arr = simu.cfall(dummy);
+	cerr << "ダミー変化なし" << endl;
+	dummy.show();
+	cerr << "アレイ変化" << endl;
+	arr.show();
+
+	simu.fall(dummy);
+	cerr << "ダミー変化" << endl;
+	dummy.show();
+
+	Input::first();
+
+	while (Input::loop())
+	{
+		cout << rand() % 1 << " " << rand() % 4 << endl;
+		cout.flush();
+	}
 
 	return 0;
 }
