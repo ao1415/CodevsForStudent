@@ -209,11 +209,9 @@ private:
 
 };
 
-template <class CharType>
-inline std::basic_ostream<CharType>& operator << (std::basic_ostream<CharType>& os, const Size& s) { return os << CharType('(') << s.width << CharType(', ') << s.height << CharType(')'); }
+inline std::ostream& operator << (ostream& os, const Size& s) { return os << "(" << s.width << ", " << s.height << ")"; }
 
-template <class CharType>
-inline std::basic_ostream<CharType>& operator << (std::basic_ostream<CharType>& os, const Point& p) { return os << CharType('(') << p.x << CharType(', ') << p.y << CharType(')'); }
+inline std::ostream& operator << (ostream& os, const Point& p) { return os << "(" << p.x << ", " << p.y << ")"; }
 
 //inline const bool inside(const Point& p) { return (0 <= p.x && p.x < StageWidth && 0 <= p.y && p.y < StageHeight); }
 
