@@ -44,9 +44,9 @@ public:
 	const Type* operator[](size_t index) const { return &data[index*width]; }
 	const Type& operator[](const Point& pos) const { return data[pos.y*width + pos.x]; }
 
-	Property_Get(bool, isEmpty) const noexcept { return data.empty(); }
-	Property_Get(size_t, Width) const noexcept { return width; }
-	Property_Get(size_t, Height) const noexcept { return height; }
+	const bool isEmpty() const { return data.empty(); }
+	const int getWidth() const { return static_cast<int>(width); }
+	const int getHeight() const { return static_cast<int>(height); }
 
 	void shrink_to_fit() { data.shrink_to_fit(); }
 

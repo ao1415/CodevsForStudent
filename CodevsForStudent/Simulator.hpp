@@ -10,17 +10,17 @@ public:
 
 		StageArray next = stage;
 
-		for (int x = 0; x < next.width; x++)
+		for (int x = 0; x < next.getWidth(); x++)
 		{
-			int index = next.height - 1;
-			for (int y = next.height - 1; y >= 0; y--)
+			int index = next.getHeight() - 1;
+			for (int y = next.getHeight() - 1; y >= 0; y--)
 			{
-				if (next[y][x] != 0)
+				if (next[y][x] != EmptyBlock)
 				{
 					if (index != y)
 					{
 						next[index][x] = next[y][x];
-						next[y][x] = 0;
+						next[y][x] = EmptyBlock;
 					}
 					index--;
 				}
@@ -32,17 +32,17 @@ public:
 	//ブロック落下(参照渡し)
 	void fall(StageArray& stage) const {
 
-		for (int x = 0; x < stage.width; x++)
+		for (int x = 0; x < stage.getWidth(); x++)
 		{
-			int index = stage.height - 1;
-			for (int y = stage.height - 1; y >= 0; y--)
+			int index = stage.getHeight() - 1;
+			for (int y = stage.getHeight() - 1; y >= 0; y--)
 			{
-				if (stage[y][x] != 0)
+				if (stage[y][x] != EmptyBlock)
 				{
 					if (index != y)
 					{
 						stage[index][x] = stage[y][x];
-						stage[y][x] = 0;
+						stage[y][x] = EmptyBlock;
 					}
 					index--;
 				}
@@ -100,9 +100,9 @@ private:
 		//右, 左下, 下, 右下
 		const Point direction[] = { Point(1,0),Point(-1,1),Point(0,1),Point(1,1) };
 
-		for (int y = 0; y < stage.height; y++)
+		for (int y = 0; y < stage.getHeight(); y++)
 		{
-			for (int x = 0; x < stage.width; x++)
+			for (int x = 0; x < stage.getWidth(); x++)
 			{
 				if (stage[y][x] == 0) continue;
 

@@ -38,9 +38,9 @@ public:
 	const Type* operator[](size_t index) const { return &data[index*_Width]; }
 	const Type& operator[](const Point& pos) const { return data[pos.y*_Width + pos.x]; }
 
-	Property_Get(bool, isEmpty) const noexcept { return data.empty(); }
-	Property_Get(int, width) const noexcept { return static_cast<int>(_Width); }
-	Property_Get(int, height) const noexcept { return static_cast<int>(_Height); }
+	const bool isEmpty() const { return data.empty(); }
+	const int getWidth() const { return static_cast<int>(_Width); }
+	const int getHeight() const { return static_cast<int>(_Height); }
 
 	void clear() noexcept {
 		data.clear();

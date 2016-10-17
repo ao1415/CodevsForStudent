@@ -12,9 +12,6 @@
 
 using namespace std;
 
-#define Property_Get(type,name) __declspec(property(get=_get_##name))type name;\
-type _get_##name()
-
 const int StageWidth = 10;
 const int StageHeight = 16;
 const int PackSize = 3;
