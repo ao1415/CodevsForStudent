@@ -75,14 +75,6 @@ public:
 
 	void fill(const Type& val) { std::fill(data.begin(), data.end(), val); }
 
-	void swap(Grid& other)
-		noexcept(std::allocator_traits<allocator_type>::propagate_on_container_swap::value
-			|| std::allocator_traits<allocator_type>::is_always_equal::value) {
-		data.swap(other.data);
-		std::swap(width, other.width);
-		std::swap(height, other.height);
-	}
-
 private:
 
 	std::vector<Type> data;
