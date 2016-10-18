@@ -32,11 +32,13 @@ public:
 		{
 			for (int t = 0; t < Turn - 1; t++)
 			{
+				const int turn = Share::getNow() + t;
+				if (turn >= Share::getTurn()) break;
+
 				for (int i = 0; i < ChokudaiWidth; i++)
 				{
 					if (qData[t].empty()) break;
 
-					const int turn = Share::getNow() + t;
 					int obstacle = qData[t].top().obstacle;
 
 					const auto pack = packs[turn].getFullObstacle(obstacle);
