@@ -67,7 +67,7 @@ public:
 								{
 									hashSet[t + 1].insert(hash);
 
-									top.score += score < 5 ? 0 : score;
+									top.score += ((score < 5) ? (0) : (score * 1000));
 									top.score += eval(top);
 
 									top.command.push_back(toCommand(pos, r));
@@ -127,17 +127,33 @@ private:
 		int score = 0;
 
 		int obstacleScore = 0;
+		int equalNumberScore = 0;
+
 		for (int y = 0; y < data.stage.getHeight(); y++)
 		{
 			for (int x = 0; x < data.stage.getWidth(); x++)
 			{
 				if (data.stage[y][x] == ObstacleBlock)
-					obstacleScore += y*y;
-
+					obstacleScore += y;
+				else if (data.stage[y][x] != EmptyBlock)
+				{
+					for (int dy = 0; dy <= 0; dy++)
+					{
+						for (int dx = -1; dx <= 1; dx++)
+						{
+							if (inside(x + dx, y + dy))
+							{
+								if (data.stage[y][x] != data.stage[y + dy][x + dx])
+									equalNumberScore++;
+							}
+						}
+					}
+				}
 			}
 		}
 
 		score += obstacleScore;
+		score += equalNumberScore;
 
 		return score;
 	}

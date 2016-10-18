@@ -293,6 +293,7 @@ inline std::ostream& operator << (ostream& os, const Point& p) { return os << "(
 //inline const bool inside(const Point& p) { return (0 <= p.x && p.x < StageWidth && 0 <= p.y && p.y < StageHeight); }
 
 //‚‚³‚ª+3‚³‚ê‚Ä‚¢‚é‚Ì‚Å’ˆÓ
+inline const bool inside(const int& x, const int& y) { return (0 <= x && x < StageWidth && 0 <= y && y < StageHeight + 3); }
 inline const bool inside(const Point& p) { return (0 <= p.x && p.x < StageWidth && 0 <= p.y && p.y < StageHeight + 3); }
 
 inline const string toCommand(int pos, int rota) { return std::to_string(pos) + " " + std::to_string(rota); }
