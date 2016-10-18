@@ -58,6 +58,7 @@ int main() {
 	{
 		cerr << "turn:" << Share::getNow() << endl;
 		const string com = ai.think();
+		cerr.flush();
 		cout << com << endl;
 		cout.flush();
 	}
