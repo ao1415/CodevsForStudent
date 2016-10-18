@@ -70,6 +70,7 @@ public:
 									top.score += ((score < 5) ? (0) : (score * 1000));
 									top.score += eval(top);
 
+									top.obstacle = obstacle;
 									top.command.push_back(toCommand(pos, r));
 									qData[t + 1].emplace(top);
 								}
