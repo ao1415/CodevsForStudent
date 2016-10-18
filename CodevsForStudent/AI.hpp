@@ -142,7 +142,7 @@ private:
 					{
 						for (int dx = -1; dx <= 1; dx++)
 						{
-							if (inside(x + dx, y + dy))
+							if (inside(x + dx, y + dy))// && data.stage[y + dy][x + dx] != EmptyBlock && data.stage[y + dy][x + dx] != ObstacleBlock)
 							{
 								if (data.stage[y][x] != data.stage[y + dy][x + dx])
 									equalNumberScore++;
