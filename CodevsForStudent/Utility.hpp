@@ -18,6 +18,7 @@ const int PackSize = 3;
 const int AddScore = 10;
 
 const int EmptyBlock = 0;
+const int ObstacleBlock = 11;
 
 using PackArray = std::array<std::array<int, PackSize>, PackSize>;
 
@@ -123,26 +124,7 @@ public:
 	Pack() = default;
 	Pack(std::array<PackArray, 4>&& p) {
 		blocks = move(p);
-
-		for (int i = 0; i < 4; i++)
-		{
-			int minSide = PackSize;
-			int maxSide = 0;
-
-			for (int y = 0; y < PackSize; y++)
-			{
-				for (int x = 0; x < PackSize; x++)
-				{
-					if (blocks[i][y][x] != EmptyBlock)
-					{
-						minSide = min(minSide, x);
-						maxSide = max(maxSide, x);
-					}
-				}
-			}
-
-			side[i] = { minSide,maxSide };
-		}
+		setSide();
 	}
 	Pack(Pack&& p) {
 		blocks = move(p.blocks);
@@ -167,18 +149,41 @@ public:
 		string endStr;
 		cin >> endStr;
 
-		for (int r = 1; r < 4; r++)
+		Pack::setRota(data);
+
+		return Pack(move(data));
+	}
+
+	Pack getFullObstacle(int& num) const {
+
+		Pack full = *this;
+
+		if (num <= 0)
 		{
-			for (int y = 0; y < PackSize; y++)
+			full.setSide();
+			return full;
+		}
+
+		for (int y = 0; y < PackSize; y++)
+		{
+			for (int x = 0; x < PackSize; x++)
 			{
-				for (int x = 0; x < PackSize; x++)
+				if (num > 0 && blocks[0][y][x] == EmptyBlock)
 				{
-					data[r][x][PackSize - 1 - y] = data[r - 1][y][x];
+					full.blocks[0][y][x] = ObstacleBlock;
+					num--;
+				}
+				if (num <= 0)
+				{
+					y = x = PackSize;
 				}
 			}
 		}
 
-		return Pack(move(data));
+		Pack::setRota(full.blocks);
+		full.setSide();
+
+		return full;
 	}
 
 	void show() const {
@@ -204,8 +209,46 @@ public:
 
 private:
 
-	std::array<PackArray, 4> blocks;
+	array<PackArray, 4> blocks;
 	array<pair<int, int>, 4> side;
+
+	void setSide() {
+
+		for (int i = 0; i < 4; i++)
+		{
+			int minSide = PackSize;
+			int maxSide = 0;
+
+			for (int y = 0; y < PackSize; y++)
+			{
+				for (int x = 0; x < PackSize; x++)
+				{
+					if (blocks[i][y][x] != EmptyBlock)
+					{
+						minSide = min(minSide, x);
+						maxSide = max(maxSide, x);
+					}
+				}
+			}
+
+			side[i] = { minSide,maxSide };
+		}
+	}
+
+	static void setRota(array<PackArray, 4>& data) {
+
+		for (int r = 1; r < 4; r++)
+		{
+			for (int y = 0; y < PackSize; y++)
+			{
+				for (int x = 0; x < PackSize; x++)
+				{
+					data[r][x][PackSize - 1 - y] = data[r - 1][y][x];
+				}
+			}
+		}
+
+	}
 
 };
 

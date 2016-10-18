@@ -10,6 +10,8 @@ public:
 
 		Data now;
 		now.stage = Share::getMyStage();
+		now.obstacle = Share::getMyObstacle();
+		cerr << "‚¨Ž×–‚:" << Share::getMyObstacle() << endl;
 		now.score = 0;
 		now.command.clear();
 
@@ -35,9 +37,11 @@ public:
 					if (qData[t].empty()) break;
 
 					const int turn = Share::getNow() + t;
+					int obstacle = qData[t].top().obstacle;
 
-					const auto pack = packs[turn].getArray();
-					const auto sides = packs[turn].getSide();
+					const auto pack = packs[turn].getFullObstacle(obstacle);
+					const auto packArr = pack.getArray();
+					const auto sides = pack.getSide();
 
 					for (int r = 0; r < 4; r++)
 					{
@@ -48,11 +52,11 @@ public:
 						for (int pos = left; pos < right; pos++)
 						{
 							Data top = qData[t].top();
-							setBlocks(top.stage, pack[r], pos);
+							setBlocks(top.stage, packArr[r], pos);
 							int score;
 							simulator.next(top.stage, score);
 
-							top.score += score;
+							top.score += score < 5 ? 0 : score;
 							top.command.push_back(toCommand(pos, r));
 							qData[t + 1].emplace(top);
 						}
@@ -92,6 +96,7 @@ private:
 
 	struct Data {
 		StageArray stage;
+		int obstacle;
 		int score;
 		vector<string> command;
 
