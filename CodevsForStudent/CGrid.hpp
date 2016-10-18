@@ -4,6 +4,12 @@
 
 template<typename Type, size_t _Width, size_t _Height>
 class CGrid {
+private:
+
+	using ContainerType = std::array<Type, _Width*_Height>;
+	using pointer = typename ContainerType::pointer;
+	using const_pointer = typename ContainerType::const_pointer;
+
 public:
 
 	CGrid() { this->fill(Type()); }
@@ -11,7 +17,7 @@ public:
 
 	CGrid(const CGrid<Type, _Width, _Height>& g) = default;
 	CGrid(CGrid<Type, _Width, _Height>&& g) noexcept {
-		data = std::move(g.data);
+		m_data = std::move(g.m_data);
 	}
 
 	CGrid<Type, _Width, _Height>& operator=(const CGrid<Type, _Width, _Height>& other) = default;
@@ -23,35 +29,35 @@ public:
 
 	Type& at(size_t y, size_t x) {
 		if (!isBounds(y, x)) throw std::out_of_range("Grid::at");
-		return data[y*_Width + x];
+		return m_data[y*_Width + x];
 	}
 	const Type& at(size_t y, size_t x) const {
 		if (!isBounds(y, x)) throw std::out_of_range("Grid::at");
-		return data[y*_Width + x];
+		return m_data[y*_Width + x];
 	}
 	Type& at(const Point& pos) { return at(pos.y, pos.x); }
 	const Type& at(const Point& pos) const { return at(pos.y, pos.x); }
 
-	Type* operator[](size_t index) { return &data[index*_Width]; }
-	Type& operator[](const Point& pos) { return data[pos.y*_Width + pos.x]; }
+	Type* operator[](size_t index) { return &m_data[index*_Width]; }
+	Type& operator[](const Point& pos) { return m_data[pos.y*_Width + pos.x]; }
 
-	const Type* operator[](size_t index) const { return &data[index*_Width]; }
-	const Type& operator[](const Point& pos) const { return data[pos.y*_Width + pos.x]; }
+	const Type* operator[](size_t index) const { return &m_data[index*_Width]; }
+	const Type& operator[](const Point& pos) const { return m_data[pos.y*_Width + pos.x]; }
 
-	const bool isEmpty() const { return data.empty(); }
+	const bool isEmpty() const { return m_data.empty(); }
 	const int getWidth() const { return static_cast<int>(_Width); }
 	const int getHeight() const { return static_cast<int>(_Height); }
 
 	void clear() noexcept {
-		data.clear();
+		m_data.clear();
 		_Width = _Height = 0;
 	}
 
 	Size size() const noexcept { return Size(static_cast<int>(_Width), static_cast<int>(_Height)); }
 
-	size_t num_elements() const noexcept { return data.size(); }
+	size_t num_elements() const noexcept { return m_data.size(); }
 
-	void fill(const Type& val) { std::fill(data.begin(), data.end(), val); }
+	void fill(const Type& val) { std::fill(m_data.begin(), m_data.end(), val); }
 
 	void show() const {
 
@@ -59,8 +65,8 @@ public:
 		{
 			for (int x = 0; x < _Width; x++)
 			{
-				if (data[y*_Width + x] != 0)
-					cerr << setw(2) << setfill(' ') << data[y*_Width + x] << ",";
+				if (m_data[y*_Width + x] != 0)
+					cerr << setw(2) << setfill(' ') << m_data[y*_Width + x] << ",";
 				else
 					cerr << "  ,";
 			}
@@ -69,8 +75,11 @@ public:
 		cerr << endl;
 	}
 
+	pointer data() { return &m_data[0]; }
+	const_pointer data() const { return m_data.data(); }
+
 private:
 
-	std::array<Type, _Width*_Height> data;
+	ContainerType m_data;
 
 };

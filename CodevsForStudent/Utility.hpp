@@ -92,6 +92,38 @@ private:
 
 };
 
+class Hash {
+public:
+
+	const size_t FNV(char* data, size_t size) const {
+		const size_t offset_basis = 2166136261;
+		const size_t FNV_prime = 16777619;
+
+		size_t hash = offset_basis;
+
+		for (size_t i = 0; i < size; i++)
+			hash = (hash*FNV_prime) ^ (data[i]);
+
+		return hash;
+	}
+	const size_t FNVa(char* data, size_t size) const {
+		const size_t offset_basis = 2166136261;
+		const size_t FNV_prime = 16777619;
+
+		size_t hash = offset_basis;
+
+		for (size_t i = 0; i < size; i++)
+			hash = (hash ^ (data[i])) * FNV_prime;
+
+		return hash;
+	}
+
+private:
+
+
+
+};
+
 struct Size {
 
 	Size() : Size(0, 0) {}
