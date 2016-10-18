@@ -89,6 +89,20 @@ public:
 
 	}
 
+	bool isDead(const StageArray& stage) const {
+
+		for (int y = 0; y < 3; y++)
+		{
+			for (int x = 0; x < StageWidth; x++)
+			{
+				if (stage[y][x] != EmptyBlock)
+					return true;
+			}
+		}
+
+		return false;
+	}
+
 private:
 
 	const int disBlocks(StageArray& stage) const {

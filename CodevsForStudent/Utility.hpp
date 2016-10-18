@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <chrono>
 #include <queue>
+#include <functional>
 
 using namespace std;
 

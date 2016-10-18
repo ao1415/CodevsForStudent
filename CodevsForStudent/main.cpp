@@ -46,6 +46,8 @@ public:
 
 int main() {
 
+	std::hash<int>();
+
 	//*
 	cout << "ao1415" << endl;
 	cout.flush();

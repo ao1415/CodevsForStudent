@@ -16,7 +16,7 @@ public:
 		now.command.clear();
 
 		const int Turn = 10;
-		const int ChokudaiWidth = 5;
+		const int ChokudaiWidth = 10;
 
 		const auto packs = Share::getPacks();
 
@@ -25,7 +25,7 @@ public:
 		array<priority_queue<Data>, Turn> qData;
 		qData[0].push(now);
 
-		Timer timer(100, Timer::MilliSecond);
+		Timer timer(300, Timer::MilliSecond);
 		timer.start();
 
 		while (!timer)
@@ -56,11 +56,13 @@ public:
 							int score;
 							simulator.next(top.stage, score);
 
-							top.score += score < 5 ? 0 : score;
-							top.command.push_back(toCommand(pos, r));
-							qData[t + 1].emplace(top);
+							if (!simulator.isDead(top.stage))
+							{
+								top.score += score < 5 ? 0 : score;
+								top.command.push_back(toCommand(pos, r));
+								qData[t + 1].emplace(top);
+							}
 						}
-
 					}
 
 					qData[t].pop();
