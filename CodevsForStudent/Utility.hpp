@@ -96,7 +96,7 @@ private:
 class Hash {
 public:
 
-	static const size_t FNV(char* data, size_t size) {
+	static const size_t FNV(const char* data, const size_t size) {
 		const size_t offset_basis = 2166136261;
 		const size_t FNV_prime = 16777619;
 
@@ -107,7 +107,7 @@ public:
 
 		return hash;
 	}
-	static const size_t FNVa(char* data, size_t size) {
+	static const size_t FNVa(const char* data, const size_t size) {
 		const size_t offset_basis = 2166136261;
 		const size_t FNV_prime = 16777619;
 

@@ -33,11 +33,14 @@ public:
 		{
 			for (int t = 0; t < Turn - 1; t++)
 			{
+				const int turn = Share::getNow() + t;
+
+				if (turn >= Share::getTurn()) break;
+
 				for (int i = 0; i < ChokudaiWidth; i++)
 				{
 					if (qData[t].empty()) break;
 
-					const int turn = Share::getNow() + t;
 					int obstacle = qData[t].top().obstacle;
 
 					const auto pack = packs[turn].getFullObstacle(obstacle);
@@ -59,12 +62,14 @@ public:
 
 							if (!simulator.isDead(top.stage))
 							{
-								const size_t hash = Hash::FNVa((char*)top.stage.data(), sizeof(int)*top.stage.num_elements());
+								const size_t hash = Hash::FNVa((char*)top.stage.data(), sizeof(StageArray));
 								if (hashSet[t + 1].find(hash) == hashSet[t + 1].end())
 								{
 									hashSet[t + 1].insert(hash);
 
 									top.score += score < 5 ? 0 : score;
+									top.score += eval(top);
+
 									top.command.push_back(toCommand(pos, r));
 									qData[t + 1].emplace(top);
 								}
@@ -78,11 +83,15 @@ public:
 			}
 		}
 
-		if (!qData[Turn - 1].empty())
+		for (int i = Turn - 1; i >= 0; i--)
 		{
-			cerr << "Score:" << qData[Turn - 1].top().score << endl;
-			return qData[Turn - 1].top().command[0];
+			if (!qData[i].empty())
+			{
+				cerr << "Score:" << qData[i].top().score << endl;
+				return qData[i].top().command[0];
+			}
 		}
+
 		cerr << "‹l‚Ý‚Å‚·" << endl;
 
 		return com;
@@ -115,14 +124,22 @@ private:
 
 	const int eval(const Data& data) const {
 
+		int score = 0;
+
+		int obstacleScore = 0;
 		for (int y = 0; y < data.stage.getHeight(); y++)
 		{
 			for (int x = 0; x < data.stage.getWidth(); x++)
 			{
+				if (data.stage[y][x] == ObstacleBlock)
+					obstacleScore += y*y;
 
 			}
 		}
 
+		score += obstacleScore;
+
+		return score;
 	}
 
 };
