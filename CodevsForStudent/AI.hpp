@@ -130,10 +130,14 @@ private:
 		int obstacleScore = 0;
 		int equalNumberScore = 0;
 
+		array<int, StageWidth> top;
+		top.fill(0);
+
 		for (int y = 0; y < data.stage.getHeight(); y++)
 		{
 			for (int x = 0; x < data.stage.getWidth(); x++)
 			{
+				top[x]++;
 				if (data.stage[y][x] == ObstacleBlock)
 					obstacleScore += y;
 				else if (data.stage[y][x] != EmptyBlock)
@@ -150,11 +154,40 @@ private:
 						}
 					}
 				}
+				else
+				{
+					top[x]--;
+				}
 			}
 		}
 
 		score += obstacleScore;
 		score += equalNumberScore;
+
+		int blockNum = 0;
+		for (const auto& v : top) blockNum += v;
+
+		const int average = blockNum / StageWidth;
+
+		for (int i = 0; i < StageWidth - 1; i++)
+		{
+			const int sub = abs(top[i] - top[i + 1]);
+			if (sub >= 4)
+			{
+				score -= sub * 10000;
+			}
+		}
+
+		int heightError = 0;
+		for (int i = 0; i < StageWidth; i++)
+		{
+			const int h = (i - 5)*(i - 5) / 5 + average;
+
+			const int sub = h - top[i];
+			heightError += sub*sub;
+		}
+
+		score -= (int)(sqrt(heightError))*average * 10;
 
 		return score;
 	}
