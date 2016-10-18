@@ -10,6 +10,7 @@
 #include <chrono>
 #include <queue>
 #include <functional>
+#include <set>
 
 using namespace std;
 
@@ -95,7 +96,7 @@ private:
 class Hash {
 public:
 
-	const size_t FNV(char* data, size_t size) const {
+	static const size_t FNV(char* data, size_t size) {
 		const size_t offset_basis = 2166136261;
 		const size_t FNV_prime = 16777619;
 
@@ -106,7 +107,7 @@ public:
 
 		return hash;
 	}
-	const size_t FNVa(char* data, size_t size) const {
+	static const size_t FNVa(char* data, size_t size) {
 		const size_t offset_basis = 2166136261;
 		const size_t FNV_prime = 16777619;
 

@@ -44,9 +44,9 @@ public:
 	const Type* operator[](size_t index) const { return &m_data[index*_Width]; }
 	const Type& operator[](const Point& pos) const { return m_data[pos.y*_Width + pos.x]; }
 
-	const bool isEmpty() const { return m_data.empty(); }
-	const int getWidth() const { return static_cast<int>(_Width); }
-	const int getHeight() const { return static_cast<int>(_Height); }
+	constexpr const bool isEmpty() const { return m_data.empty(); }
+	constexpr const int getWidth() const { return static_cast<int>(_Width); }
+	constexpr const int getHeight() const { return static_cast<int>(_Height); }
 
 	void clear() noexcept {
 		m_data.clear();

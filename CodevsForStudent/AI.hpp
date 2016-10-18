@@ -11,7 +11,6 @@ public:
 		Data now;
 		now.stage = Share::getMyStage();
 		now.obstacle = Share::getMyObstacle();
-		cerr << "‚¨Ž×–‚:" << Share::getMyObstacle() << endl;
 		now.score = 0;
 		now.command.clear();
 
@@ -23,6 +22,8 @@ public:
 		Simulator simulator;
 
 		array<priority_queue<Data>, Turn> qData;
+		array<set<size_t>, Turn> hashSet;
+
 		qData[0].push(now);
 
 		Timer timer(300, Timer::MilliSecond);
@@ -58,9 +59,15 @@ public:
 
 							if (!simulator.isDead(top.stage))
 							{
-								top.score += score < 5 ? 0 : score;
-								top.command.push_back(toCommand(pos, r));
-								qData[t + 1].emplace(top);
+								const size_t hash = Hash::FNVa((char*)top.stage.data(), sizeof(int)*top.stage.num_elements());
+								if (hashSet[t + 1].find(hash) == hashSet[t + 1].end())
+								{
+									hashSet[t + 1].insert(hash);
+
+									top.score += score < 5 ? 0 : score;
+									top.command.push_back(toCommand(pos, r));
+									qData[t + 1].emplace(top);
+								}
 							}
 						}
 					}
@@ -83,19 +90,6 @@ public:
 
 private:
 
-	void setBlocks(StageArray& stage, const PackArray& pack, const int pos) const {
-
-		for (int y = 0; y < PackSize; y++)
-		{
-			for (int x = 0; x < PackSize; x++)
-			{
-				if (0 <= x + pos && x + pos < StageWidth)
-					stage[y][x + pos] = pack[y][x];
-			}
-		}
-
-	}
-
 	struct Data {
 		StageArray stage;
 		int obstacle;
@@ -105,5 +99,30 @@ private:
 		const bool operator<(const Data& d) const { return score < d.score; }
 
 	};
+
+	void setBlocks(StageArray& stage, const PackArray& pack, const int pos) const {
+
+		for (int y = 0; y < PackSize; y++)
+		{
+			for (int x = 0; x < PackSize; x++)
+			{
+				if (0 <= x + pos && x + pos < stage.getWidth())
+					stage[y][x + pos] = pack[y][x];
+			}
+		}
+
+	}
+
+	const int eval(const Data& data) const {
+
+		for (int y = 0; y < data.stage.getHeight(); y++)
+		{
+			for (int x = 0; x < data.stage.getWidth(); x++)
+			{
+
+			}
+		}
+
+	}
 
 };

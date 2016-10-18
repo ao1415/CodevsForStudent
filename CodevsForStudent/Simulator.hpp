@@ -93,7 +93,7 @@ public:
 
 		for (int y = 0; y < 3; y++)
 		{
-			for (int x = 0; x < StageWidth; x++)
+			for (int x = 0; x < stage.getWidth(); x++)
 			{
 				if (stage[y][x] != EmptyBlock)
 					return true;
@@ -130,7 +130,9 @@ private:
 					for (int i = 1; i < StageHeight; i++)
 					{
 						p += dire;
+
 						if (!inside(p) || stage[p] == 0) break;
+						
 						add += stage[p];
 
 						//10‚É‚È‚Á‚½
@@ -138,7 +140,7 @@ private:
 						{
 							for (int j = i; j >= 0; j--)
 							{
-								next[p] = 0;
+								next[p] = EmptyBlock;
 								count++;
 								p -= dire;
 							}
