@@ -153,7 +153,7 @@ private:
 			}
 		}
 
-		int average =0;
+		int average = 0;
 		for (const auto& v : blockTop) average += v;
 		average /= blockTop.size();
 
@@ -219,9 +219,10 @@ private:
 
 		score += linkScore;
 		score -= obstacleScore;
+		score -= data.obstacle * 10;
 
 		score += flatScore;
-		score -= heightError;
+		score -= heightError * 5;
 
 		score += attackScore < 250 ? attackScore * 10 : attackScore * 20;
 
