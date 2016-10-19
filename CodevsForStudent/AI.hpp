@@ -291,10 +291,11 @@ private:
 
 		score -= data.obstacle * 10;
 
-		score += maxScore * 8;
-		score += attackScore < 250 ? attackScore * 8 : attackScore * 15;
+		score += maxScore * 10;
+		//‘ŠŽè‚ÆŽ©•ª‚Ìó‹µ‚ð‚Ý‚Äè‡’l‚ðŒˆ‚ß‚é
+		score += attackScore < 250 ? attackScore * 10 : attackScore * 20;
 
-		score -= maxScore < 250 ? 0 : trashScore * 5;
+		score -= maxScore < 250 ? 0 : trashScore * 3;
 
 		scoreBoard.obstacleScore = obstacleScore;
 		scoreBoard.linkScore = linkScore;
