@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="AI.hpp" />
     <ClInclude Include="CGrid.hpp" />
+    <ClInclude Include="Evaluation.hpp" />
     <ClInclude Include="Grid.hpp" />
     <ClInclude Include="Share.hpp" />
     <ClInclude Include="Simulator.hpp" />

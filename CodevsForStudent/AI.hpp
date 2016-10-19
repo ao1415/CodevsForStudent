@@ -130,7 +130,9 @@ private:
 
 			cerr << "想定連鎖スコア\t\t:" << maxScore << endl;
 			cerr << "発火連鎖スコア\t\t:" << attackScore << endl << endl;
+
 			cerr << "連鎖尾スコア\t\t:" << trashScore << endl << endl;
+
 			cerr << "総合スコア\t\t:" << score << endl;
 			cerr << point << ", wait:" << waitNumber << endl;
 		}
