@@ -27,7 +27,7 @@ public:
 
 		cerr << "連鎖尾スコア\t\t:" << trashScore << endl << endl;
 
-		cerr << "総合スコア\t\t:" << score << endl;
+		//cerr << "総合スコア\t\t:" << score << endl;
 		cerr << waitPoint << ", wait:" << waitNumber << endl;
 	}
 
