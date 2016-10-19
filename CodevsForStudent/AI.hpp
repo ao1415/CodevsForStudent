@@ -203,7 +203,7 @@ private:
 
 		int average = 0;
 		for (const auto& v : blockTop) average += v;
-		average /= (int)blockTop.size();
+		average /= blockTop.size();
 
 		//R’J‚ÌŒŸõEŒ`‚Ì•]‰¿
 		int flatScore = 0;
