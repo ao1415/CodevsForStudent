@@ -65,8 +65,8 @@ public:
 								hashSet.insert(hash);
 
 								ScoreBoard scoreBoard;
-								//top.score += eval(top, score, scoreBoard);
-								top.score = eval(top, score, scoreBoard);
+								top.score += eval(top, score, scoreBoard);
+								//top.score = eval(top, score, scoreBoard);
 								top.scoreBoard.emplace_back(scoreBoard);
 
 								top.obstacle = obstacle;
@@ -98,16 +98,24 @@ public:
 private:
 
 	struct ScoreBoard {
-		int linkScore = 0;
 		int obstacleScore = 0;
-		int average = 0;
+		int linkScore = 0;
+
 		int flatScore = 0;
+		int average = 0;
 		int heightError = 0;
-		int maxScore = 0;
 		int triggerHeight = 0;
+
 		int obstacle = 0;
+
+		int maxScore = 0;
 		int attackScore = 0;
+		int trashScore = 0;
+
 		int score = 0;
+
+		int waitNumber = 0;
+		Point point;
 
 		void show() const {
 			cerr << "お邪魔配置スコア\t:" << obstacleScore << endl;
@@ -122,7 +130,9 @@ private:
 
 			cerr << "想定連鎖スコア\t\t:" << maxScore << endl;
 			cerr << "発火連鎖スコア\t\t:" << attackScore << endl << endl;
+			cerr << "連鎖尾スコア\t\t:" << trashScore << endl << endl;
 			cerr << "総合スコア\t\t:" << score << endl;
+			cerr << point << ", wait:" << waitNumber << endl;
 		}
 
 	};
@@ -194,7 +204,7 @@ private:
 		average /= blockTop.size();
 
 		//山谷の検索・形の評価
-		int flatScore = 2000;
+		int flatScore = 0;
 		int heightError = 0;
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
@@ -204,19 +214,15 @@ private:
 			const int lsub = blockTop[x] - l;
 			const int rsub = blockTop[x] - r;
 
-			if (lsub >= 4)
-				flatScore -= 1000;
-			if (rsub >= 4)
+			if (lsub >= 4 && rsub >= 4)
 				flatScore -= 1000;
 
-			if (lsub <= -4)
-				flatScore -= 1000;
-			if (rsub <= -4)
+			if (lsub <= -4 && rsub <= -4)
 				flatScore -= 1000;
 
-			const int h = (x - 5)*(x - 5) / 5 + average;
+			const int h = (x - 5)*(x - 5) / 5 + average - 2;
 			const int sub = h - blockTop[x];
-			heightError += sub;
+			heightError += sub*sub;
 		}
 		heightError = int(sqrt(heightError));
 
@@ -227,8 +233,10 @@ private:
 		//連鎖の検索
 		int maxScore = 0;
 		int triggerHeight = 0;
+		StageArray maxStage;
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
+			//for (int y = 0; y < PackSize; y++)
 			for (int y = 0; y < PackSize; y++)
 			{
 				const Point point = Point(x, data.stage.getHeight() - blockTop[x] - 1 - y);
@@ -253,10 +261,22 @@ private:
 						{
 							maxScore = s;
 							triggerHeight = abs(blockTop[x] + y - average);
+							maxStage = move(checkStage);
+							scoreBoard.waitNumber = num;
+							scoreBoard.point = point;
 						}
 					}
 
 				}
+			}
+		}
+		int trashScore = 0;
+		for (int y = 0; y < maxStage.getHeight(); y++)
+		{
+			for (int x = 0; x < maxStage.getWidth(); x++)
+			{
+				if (maxStage[y][x] != EmptyBlock && maxStage[y][x] != ObstacleBlock)
+					trashScore++;
 			}
 		}
 
@@ -271,8 +291,10 @@ private:
 
 		score -= data.obstacle * 10;
 
-		score += maxScore * 5;
-		score += attackScore < 250 ? attackScore * 5 : attackScore * 10;
+		score += maxScore * 8;
+		score += attackScore < 250 ? attackScore * 8 : attackScore * 15;
+
+		score -= maxScore < 250 ? 0 : trashScore * 5;
 
 		scoreBoard.obstacleScore = obstacleScore;
 		scoreBoard.linkScore = linkScore;
@@ -286,6 +308,8 @@ private:
 
 		scoreBoard.attackScore = attackScore;
 		scoreBoard.maxScore = maxScore;
+
+		scoreBoard.trashScore = trashScore;
 
 		scoreBoard.score = score;
 

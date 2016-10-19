@@ -56,7 +56,7 @@ int main() {
 
 	while (Input::loop())
 	{
-		cerr << "turn:" << Share::getNow() << endl;
+		cerr << "turn:" << Share::getNow() << "================" << endl;
 		const string com = ai.think();
 		cerr.flush();
 		cout << com << endl;
