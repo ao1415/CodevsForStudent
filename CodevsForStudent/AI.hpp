@@ -65,7 +65,8 @@ public:
 								hashSet.insert(hash);
 
 								ScoreBoard scoreBoard;
-								top.score += eval(top, score, scoreBoard);
+								//top.score += eval(top, score, scoreBoard);
+								top.score = eval(top, score, scoreBoard);
 								top.scoreBoard.emplace_back(scoreBoard);
 
 								top.obstacle = obstacle;
@@ -193,17 +194,24 @@ private:
 		average /= blockTop.size();
 
 		//éRíJÇÃåüçıÅEå`ÇÃï]âø
-		int flatScore = 0;
+		int flatScore = 2000;
 		int heightError = 0;
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
-			int l = ((x - 1 >= 0) ? blockTop[x - 1] : StageHeight);
-			int r = ((x + 1 < (int)blockTop.size()) ? blockTop[x + 1] : StageHeight);
+			const int l = ((x - 1 >= 0) ? blockTop[x - 1] : 99999);
+			const int r = ((x + 1 < (int)blockTop.size()) ? blockTop[x + 1] : 99999);
 
-			if (blockTop[x] - l >= 4 && blockTop[x] - r >= 4)
+			const int lsub = blockTop[x] - l;
+			const int rsub = blockTop[x] - r;
+
+			if (lsub >= 4)
+				flatScore -= 1000;
+			if (rsub >= 4)
 				flatScore -= 1000;
 
-			if (blockTop[x] - l <= -4 && blockTop[x] - r <= -4)
+			if (lsub <= -4)
+				flatScore -= 1000;
+			if (rsub <= -4)
 				flatScore -= 1000;
 
 			const int h = (x - 5)*(x - 5) / 5 + average;
@@ -263,8 +271,8 @@ private:
 
 		score -= data.obstacle * 10;
 
-		score += maxScore * 10;
-		score += attackScore < 250 ? attackScore * 10 : attackScore * 20;
+		score += maxScore * 5;
+		score += attackScore < 250 ? attackScore * 5 : attackScore * 10;
 
 		scoreBoard.obstacleScore = obstacleScore;
 		scoreBoard.linkScore = linkScore;
