@@ -22,6 +22,8 @@ const int AddScore = 10;
 const int EmptyBlock = 0;
 const int ObstacleBlock = 11;
 
+const int Rotation = 4;
+
 using PackArray = std::array<std::array<int, PackSize>, PackSize>;
 
 class Stopwatch {
@@ -271,7 +273,7 @@ private:
 
 	static void setRota(array<PackArray, 4>& data) {
 
-		for (int r = 1; r < 4; r++)
+		for (int r = 1; r < Rotation; r++)
 		{
 			for (int y = 0; y < PackSize; y++)
 			{

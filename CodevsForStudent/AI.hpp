@@ -8,27 +8,98 @@ public:
 	const string think() {
 		string com = "0 0";
 
+		const auto packs = Share::getPacks();
+		Simulator simulator;
 
+		Data now;
+		now.stage = Share::getMyStage();
+		now.obstacle = Share::getMyObstacle();
+		now.command.clear();
+		now.score = 0;
+
+		priority_queue<Data> qData;
+		qData.emplace(now);
+
+		const int Turn = 10;
+		const int BeamWidth = 10;
+
+		for (int t = 0; t < Turn; t++)
+		{
+			const int turn = Share::getNow() + t;
+			if (turn >= Share::getTurn()) break;
+
+			priority_queue<Data> qNext;
+
+			set<size_t> hashSet;
+
+			for (int i = 0; i < BeamWidth; i++)
+			{
+				if (qData.empty()) break;
+
+				int obstacle = qData.top().obstacle;
+
+				const auto pack = packs[turn].getFullObstacle(obstacle);
+				const auto packArr = pack.getArray();
+				const auto sides = pack.getSide();
+
+				for (int r = 0; r < Rotation; r++)
+				{
+					const int packWidth = sides[r].second - sides[r].first + 1;
+					const int left = 0 - sides[r].first;
+					const int right = StageWidth - packWidth + 1 - sides[r].first;
+
+					for (int pos = left; pos < right; pos++)
+					{
+						Data top = qData.top();
+						simulator.setBlocks(top.stage, packArr[r], pos);
+
+						int score;
+						simulator.next(top.stage, score);
+
+						if (!simulator.isDead(top.stage))
+						{
+							const size_t hash = Hash::FNVa((char*)top.stage.data(), sizeof(StageArray));
+							if (hashSet.find(hash) == hashSet.end())
+							{
+								hashSet.insert(hash);
+
+								top.score += eval(top, score);
+
+								top.obstacle = obstacle;
+								if (top.command.empty()) top.command = toCommand(pos, r);
+
+								qNext.emplace(top);
+							}
+						}
+
+					}
+				}
+
+				qData.pop();
+			}
+			qData.swap(qNext);
+		}
+
+		if (!qData.empty())
+		{
+			return qData.top().command;
+		}
 
 		return com;
 	}
 
 private:
 
-	void setBlocks(StageArray& stage, const PackArray& pack, const int pos) const {
+	struct Data {
+		StageArray stage;
+		int obstacle;
+		int score;
+		string command;
 
-		for (int y = 0; y < PackSize; y++)
-		{
-			for (int x = 0; x < PackSize; x++)
-			{
-				if (0 <= x + pos && x + pos < stage.getWidth())
-					stage[y][x + pos] = pack[y][x];
-			}
-		}
+		const bool operator<(const Data& d) const { return score < d.score; }
+	};
 
-	}
-
-	const int eval() const {
+	const int eval(const Data& data, const int attackScore) const {
 
 		int score = 0;
 

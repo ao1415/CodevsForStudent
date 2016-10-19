@@ -103,6 +103,19 @@ public:
 		return false;
 	}
 
+	void setBlocks(StageArray& stage, const PackArray& pack, const int pos) const {
+
+		for (int y = 0; y < PackSize; y++)
+		{
+			for (int x = 0; x < PackSize; x++)
+			{
+				if (0 <= x + pos && x + pos < stage.getWidth())
+					stage[y][x + pos] = pack[y][x];
+			}
+		}
+
+	}
+
 private:
 
 	const int disBlocks(StageArray& stage) const {
