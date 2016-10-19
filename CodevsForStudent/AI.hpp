@@ -165,9 +165,14 @@ private:
 			int l = ((x - 1 >= 0) ? blockTop[x - 1] : StageHeight);
 			int r = ((x + 1 < (int)blockTop.size()) ? blockTop[x + 1] : StageHeight);
 
-			if (blockTop[x] - l >= 4 && blockTop[x] - r >= 4)
+			if (blockTop[x] - l >= 6)
 				flatScore -= 1000;
-			else if (blockTop[x] - l <= -4 && blockTop[x] - r <= -4)
+			if (blockTop[x] - r >= 6)
+				flatScore -= 1000;
+
+			if (blockTop[x] - l <= -6)
+				flatScore -= 1000;
+			if (blockTop[x] - r <= -6)
 				flatScore -= 1000;
 
 			const int h = (x - 5)*(x - 5) / 5 + average;
@@ -182,6 +187,7 @@ private:
 		const Point direction[] = { Point(-1,-1),Point(1,-1),Point(-1,0),Point(1,0),Point(-1,1),Point(0,1),Point(1,1) };
 		//˜A½‚ÌŒŸõ
 		int maxScore = 0;
+		int triggerHeight = 0;
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
 			for (int y = 0; y < PackSize; y++)
@@ -204,7 +210,11 @@ private:
 						StageArray checkStage = data.stage;
 						checkStage[point] = num;
 						simulator.next(checkStage, s);
-						maxScore = max(maxScore, s);
+						if (maxScore < s)
+						{
+							maxScore = s;
+							triggerHeight = blockTop[x] + y;
+						}
 					}
 
 				}
@@ -223,6 +233,7 @@ private:
 
 		score += flatScore;
 		score -= heightError * 5;
+		score -= abs(triggerHeight - average) * 500;
 
 		score += attackScore < 250 ? attackScore * 10 : attackScore * 20;
 
