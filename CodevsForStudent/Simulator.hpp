@@ -59,7 +59,6 @@ public:
 
 		int chain = 1;
 		int count = 0;
-		fall(next);
 		while ((count = disBlocks(next)) > 0)
 		{
 			score += (int)pow(1.3, chain)*(int)(count / 2);
@@ -77,7 +76,6 @@ public:
 
 		int chain = 1;
 		int count = 0;
-		fall(stage);
 		while ((count = disBlocks(stage)) > 0)
 		{
 			score += (int)pow(1.3, chain)*(int)(count / 2);
@@ -144,7 +142,7 @@ private:
 					{
 						p += dire;
 
-						if (!inside(p) || stage[p] == 0) break;
+						if (!inside(p) || stage[p] == EmptyBlock) break;
 						
 						add += stage[p];
 
