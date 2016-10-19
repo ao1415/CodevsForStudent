@@ -64,7 +64,9 @@ public:
 							{
 								hashSet.insert(hash);
 
-								top.score += eval(top, score);
+								ScoreBoard scoreBoard;
+								top.score += eval(top, score, scoreBoard);
+								top.scoreBoard.emplace_back(scoreBoard);
 
 								top.obstacle = obstacle;
 								if (top.command.empty()) top.command = toCommand(pos, r);
@@ -83,7 +85,8 @@ public:
 
 		if (!qData.empty())
 		{
-			cerr << "score:" << qData.top().score << endl;
+			qData.top().scoreBoard[0].show();
+			//cerr << "総合スコア\t\t:" << qData.top().score << endl;
 			return qData.top().command;
 		}
 
@@ -93,16 +96,48 @@ public:
 
 private:
 
+	struct ScoreBoard {
+		int linkScore = 0;
+		int obstacleScore = 0;
+		int average = 0;
+		int flatScore = 0;
+		int heightError = 0;
+		int maxScore = 0;
+		int triggerHeight = 0;
+		int obstacle = 0;
+		int attackScore = 0;
+		int score = 0;
+
+		void show() const {
+			cerr << "お邪魔配置スコア\t:" << obstacleScore << endl;
+			cerr << "結合スコア\t\t:" << linkScore << endl << endl;
+
+			cerr << "凹凸スコア\t\t:" << flatScore << endl;
+			cerr << "ブロックの高さ平均\t:" << average << endl;
+			cerr << "U字形状スコア\t\t:" << heightError << endl;
+			cerr << "発火位置\t\t:" << triggerHeight << endl << endl;
+
+			cerr << "お邪魔ブロック数\t:" << obstacle << endl << endl;
+
+			cerr << "想定連鎖スコア\t\t:" << maxScore << endl;
+			cerr << "発火連鎖スコア\t\t:" << attackScore << endl << endl;
+			cerr << "総合スコア\t\t:" << score << endl;
+		}
+
+	};
+
 	struct Data {
 		StageArray stage;
 		int obstacle;
 		int score;
 		string command;
 
+		vector<ScoreBoard> scoreBoard;
+
 		const bool operator<(const Data& d) const { return score < d.score; }
 	};
 
-	const int eval(const Data& data, const int attackScore) const {
+	const int eval(const Data& data, const int attackScore, ScoreBoard& scoreBoard) const {
 
 		array<int, StageWidth> blockTop;
 
@@ -165,14 +200,10 @@ private:
 			int l = ((x - 1 >= 0) ? blockTop[x - 1] : StageHeight);
 			int r = ((x + 1 < (int)blockTop.size()) ? blockTop[x + 1] : StageHeight);
 
-			if (blockTop[x] - l >= 6)
-				flatScore -= 1000;
-			if (blockTop[x] - r >= 6)
+			if (blockTop[x] - l >= 4 && blockTop[x] - r >= 4)
 				flatScore -= 1000;
 
-			if (blockTop[x] - l <= -6)
-				flatScore -= 1000;
-			if (blockTop[x] - r <= -6)
+			if (blockTop[x] - l <= -4 && blockTop[x] - r <= -4)
 				flatScore -= 1000;
 
 			const int h = (x - 5)*(x - 5) / 5 + average;
@@ -213,7 +244,7 @@ private:
 						if (maxScore < s)
 						{
 							maxScore = s;
-							triggerHeight = blockTop[x] + y;
+							triggerHeight = abs(blockTop[x] + y - average);
 						}
 					}
 
@@ -223,21 +254,32 @@ private:
 
 		int score = 0;
 
-		//cerr << "link:" << linkScore << endl;
-		//cerr << "flat:" << flatScore << endl;
-		//cerr << "max :" << maxScore << endl;
-
-		score += linkScore;
 		score -= obstacleScore;
-		score -= data.obstacle * 10;
+		score += linkScore;
 
 		score += flatScore;
 		score -= heightError * 5;
-		score -= abs(triggerHeight - average) * 500;
+		score -= triggerHeight * 100;
 
-		score += attackScore < 250 ? attackScore * 10 : attackScore * 20;
+		score -= data.obstacle * 10;
 
 		score += maxScore * 10;
+		score += attackScore < 250 ? attackScore * 10 : attackScore * 20;
+
+		scoreBoard.obstacleScore = obstacleScore;
+		scoreBoard.linkScore = linkScore;
+
+		scoreBoard.flatScore = flatScore;
+		scoreBoard.average = average;
+		scoreBoard.heightError = heightError;
+		scoreBoard.triggerHeight = triggerHeight;
+
+		scoreBoard.obstacle = data.obstacle;
+
+		scoreBoard.attackScore = attackScore;
+		scoreBoard.maxScore = maxScore;
+
+		scoreBoard.score = score;
 
 		return score;
 	}
