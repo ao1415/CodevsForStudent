@@ -52,8 +52,5 @@
     <ClInclude Include="AI.hpp">
       <Filter>ソース ファイル\AI</Filter>
     </ClInclude>
-    <ClInclude Include="Evaluation.hpp">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
