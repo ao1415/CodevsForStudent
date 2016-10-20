@@ -44,6 +44,10 @@ public:
 		cerr << triggerPoint << ", wait:" << triggerBlock << endl;
 	}
 
+	void showTotalScore() const {
+		cerr << "総合スコア:" << totalScore << endl;
+	}
+
 private:
 
 	//現在のターン数

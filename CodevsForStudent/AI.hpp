@@ -91,7 +91,8 @@ public:
 
 		if (!qData.empty())
 		{
-			qData.top().scoreBoard[0].show();
+			//qData.top().scoreBoard[0].show();
+			qData.top().scoreBoard[0].showTotalScore();
 			//cerr << "‘‡ƒXƒRƒA\t\t:" << qData.top().score << endl;
 			return qData.top().command;
 		}
