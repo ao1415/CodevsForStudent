@@ -1,48 +1,5 @@
-#include "Share.hpp"
+#include "Input.hpp"
 #include "AI.hpp"
-
-class Input {
-public:
-
-	static void first() {
-		int w, h, t, s;
-		cin >> w >> h >> t >> s >> Share::turn;
-
-		for (int i = 0; i < Share::turn; i++)
-		{
-			Share::packs.emplace_back(Pack::input());
-		}
-	}
-
-	static bool loop() {
-		string endStr;
-
-		cin >> Share::now >> Share::time;
-
-		cin >> Share::myObstacle;
-		for (int y = 0; y < StageHeight; y++)
-		{
-			for (int x = 0; x < StageWidth; x++)
-			{
-				cin >> Share::myStage[y + 3][x];
-			}
-		}
-		cin >> endStr;
-
-		cin >> Share::enObstacle;
-		for (int y = 0; y < StageHeight; y++)
-		{
-			for (int x = 0; x < StageWidth; x++)
-			{
-				cin >> Share::enStage[y + 3][x];
-			}
-		}
-		cin >> endStr;
-
-		return endStr == "END";
-	}
-
-};
 
 int main() {
 
@@ -53,11 +10,17 @@ int main() {
 	Input::first();
 
 	AI ai;
+	Stopwatch sw;
 
 	while (Input::loop())
 	{
 		cerr << "turn:" << Share::getNow() << "================" << endl;
+
+		sw.start();
 		const string com = ai.think();
+		sw.stop();
+		cerr << "time:" << sw.millisecond() << "ms" << endl;
+
 		cerr.flush();
 		cout << com << endl;
 		cout.flush();

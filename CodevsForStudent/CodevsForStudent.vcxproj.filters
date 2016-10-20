@@ -29,9 +29,6 @@
     <ClCompile Include="Share.cpp">
       <Filter>ソース ファイル\Share</Filter>
     </ClCompile>
-    <ClCompile Include="Simulator.cpp">
-      <Filter>ソース ファイル\Simulator</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utility.hpp">
@@ -53,6 +50,12 @@
       <Filter>ソース ファイル\AI</Filter>
     </ClInclude>
     <ClInclude Include="Evaluation.hpp">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Pack.hpp">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.hpp">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
   </ItemGroup>

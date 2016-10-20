@@ -148,13 +148,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Share.cpp" />
-    <ClCompile Include="Simulator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AI.hpp" />
     <ClInclude Include="CGrid.hpp" />
     <ClInclude Include="Evaluation.hpp" />
     <ClInclude Include="Grid.hpp" />
+    <ClInclude Include="Input.hpp" />
+    <ClInclude Include="Pack.hpp" />
     <ClInclude Include="Share.hpp" />
     <ClInclude Include="Simulator.hpp" />
     <ClInclude Include="Utility.hpp" />
