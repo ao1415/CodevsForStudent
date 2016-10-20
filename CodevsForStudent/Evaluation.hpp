@@ -5,7 +5,8 @@
 class Evaluation {
 public:
 
-	const int getScore(const StageArray& _stage, const int _obstacleNumber, const int _attackScore, const int turn) {
+	const int getScore(const StageArray& _stage, const int _obstacleNumber, const int _attackScore, const int _turn) {
+		turn = _turn;
 		obstacleNumber = _obstacleNumber;
 		attackScore = _attackScore;
 
@@ -44,6 +45,9 @@ public:
 	}
 
 private:
+
+	//現在のターン数
+	int turn = 0;
 
 	//ステージ上のお邪魔ブロックの高さの総和
 	int obstacleHeightSum = 0;
@@ -206,6 +210,13 @@ private:
 
 		Simulator simulator;
 
+		const auto& blockContainPacks = Share::getBlockContainPacks();
+		const auto find_blockTurn = [&](const int num) {
+			for (const auto& val : blockContainPacks[num])
+				if (val > turn) return val;
+			return 1000;
+		};
+
 		//左上・右上・左・右・左下・下・右下
 		const Point direction[] = { Point(-1,-1),Point(1,-1),Point(-1,0),Point(1,0),Point(-1,1),Point(0,1),Point(1,1) };
 
@@ -233,6 +244,11 @@ private:
 						StageArray checkStage = stage;
 						checkStage[point] = num;
 						simulator.next(checkStage, s);
+
+						const int nblockTurn = find_blockTurn(num);
+						const int turnSub = (nblockTurn - turn - 1) / 4;
+						s = (int)(s*exp(-turnSub));
+
 						if (chainScore < s)
 						{
 							chainScore = s;

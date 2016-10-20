@@ -38,6 +38,10 @@ public:
 
 	friend Input;
 
+	static void update() {
+		updateBlockContainPacks();
+	}
+
 private:
 
 	static int turn;
@@ -51,5 +55,18 @@ private:
 	static StageArray enStage;
 
 	static array<vector<int>, 10> blockContainPacks;
+
+	static void updateBlockContainPacks() {
+
+		for (size_t i = 0; i < blockContainPacks.size(); i++)
+		{
+			while (!blockContainPacks[i].empty())
+			{
+				if (blockContainPacks[i][0] >= now) break;
+				blockContainPacks[i].erase(blockContainPacks[i].begin());
+			}
+		}
+
+	}
 
 };

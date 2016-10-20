@@ -72,6 +72,9 @@ public:
 	}
 	void next(StageArray& stage, int& s) const {
 
+		//キャッシュを作って高速化できるか試す
+		//std::map<size_t(ステージのハッシュ値), std::piar<StageArray(処理後のステージ), vector<int>(カウント配列)>
+
 		int score = 0;
 
 		int chain = 1;

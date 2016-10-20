@@ -14,6 +14,8 @@ int main() {
 
 	while (Input::loop())
 	{
+		Share::update();
+
 		cerr << "turn:" << Share::getNow() << "================" << endl;
 
 		sw.start();
