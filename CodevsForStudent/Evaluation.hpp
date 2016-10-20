@@ -50,6 +50,12 @@ public:
 		cerr << "総合スコア:" << totalScore << endl;
 	}
 
+	void showAttackScore() const {
+		cerr << "チェインスコア:" << attackScore << endl;
+	}
+
+	const int get() const { return attackScore; }
+
 private:
 
 	//現在のターン数
@@ -251,11 +257,17 @@ private:
 
 						int s;
 						StageArray checkStage = stage;
+
+						for (int i = 0; i < y; i++)
+							checkStage[stage.getHeight() - blockTop[x] - 1 - i][x] = ObstacleBlock;
+
 						checkStage[point] = num;
 						simulator.next(checkStage, s);
 
 						const int nblockTurn = find_blockTurn(num);
-						const int turnSub = (nblockTurn - turn - 1) / 4;
+						//const int turnSub = (nblockTurn - turn - 1) / 4;
+						const double turnSub = (nblockTurn - turn - 1) / 4.0;
+
 						s = (int)(s*exp(-turnSub));
 
 						if (chainScore < s)
@@ -285,7 +297,7 @@ private:
 
 		if (obstacleNumber > 0 && sendBlock > obstacleNumber)
 			shotThreshold = 0;
-		
+
 	}
 
 

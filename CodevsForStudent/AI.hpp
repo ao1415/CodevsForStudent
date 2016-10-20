@@ -93,6 +93,9 @@ public:
 		{
 			//qData.top().scoreBoard[0].show();
 			qData.top().scoreBoard[0].showTotalScore();
+			addScore += qData.top().scoreBoard[0].get();
+			//qData.top().scoreBoard[0].showAttackScore();
+			cerr << "スコア:" << addScore << endl;
 			//cerr << "総合スコア\t\t:" << qData.top().score << endl;
 			return qData.top().command;
 		}
@@ -113,5 +116,7 @@ private:
 
 		const bool operator<(const Data& d) const { return score < d.score; }
 	};
+
+	int addScore = 0;
 
 };
