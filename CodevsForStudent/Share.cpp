@@ -12,3 +12,6 @@ StageArray Share::myStage;
 StageArray Share::enStage;
 
 array<vector<int>, 10> Share::blockContainPacks;
+
+int Share::myFreeSpace;
+int Share::enFreeSpace;

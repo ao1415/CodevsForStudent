@@ -36,10 +36,14 @@ public:
 	/// <summary>指定された数字がどのパックに含まれているかの配列を返す</summary>
 	inline static const vector<int>& getBlockContainPacks(const size_t n) { return blockContainPacks[n]; }
 
+	inline static const int getMyFreeSpace() { return myFreeSpace; }
+	inline static const int getEnFreeSpace() { return enFreeSpace; }
+
 	friend Input;
 
 	static void update() {
 		updateBlockContainPacks();
+		updateFreeSpace();
 	}
 
 private:
@@ -56,6 +60,10 @@ private:
 
 	static array<vector<int>, 10> blockContainPacks;
 
+	static int myFreeSpace;
+	static int enFreeSpace;
+
+	//vectorを前から消している
 	static void updateBlockContainPacks() {
 
 		for (size_t i = 0; i < blockContainPacks.size(); i++)
@@ -64,6 +72,21 @@ private:
 			{
 				if (blockContainPacks[i][0] >= now) break;
 				blockContainPacks[i].erase(blockContainPacks[i].begin());
+			}
+		}
+
+	}
+
+	static void updateFreeSpace() {
+
+		myFreeSpace = enFreeSpace = 0;
+
+		for (int y = 0; y < myStage.getHeight(); y++)
+		{
+			for (int x = 0; x < myStage.getWidth(); x++)
+			{
+				if (myStage[y][x] == EmptyBlock) myFreeSpace++;
+				if (enStage[y][x] == EmptyBlock) enFreeSpace++;
 			}
 		}
 

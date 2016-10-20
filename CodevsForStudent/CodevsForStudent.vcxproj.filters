@@ -21,6 +21,9 @@
     <Filter Include="ソース ファイル\AI">
       <UniqueIdentifier>{319d5e6f-3cb4-4874-9c9c-16885243cee9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Utility">
+      <UniqueIdentifier>{33cb53d3-c499-4098-a4b1-fc7858a18460}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -31,9 +34,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Utility.hpp">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Grid.hpp">
       <Filter>ソース ファイル\array</Filter>
     </ClInclude>
@@ -49,14 +49,17 @@
     <ClInclude Include="AI.hpp">
       <Filter>ソース ファイル\AI</Filter>
     </ClInclude>
-    <ClInclude Include="Evaluation.hpp">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Pack.hpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.hpp">
+      <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
     <ClInclude Include="Input.hpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Evaluation.hpp">
+      <Filter>ソース ファイル\AI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

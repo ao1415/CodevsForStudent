@@ -19,6 +19,8 @@ public:
 
 		searchChain(_stage);
 
+		setShotThreshold();
+
 		setTotalScore();
 
 		return totalScore;
@@ -75,6 +77,9 @@ private:
 	int chainScore = 0;
 	//発火した時のスコア
 	int attackScore = 0;
+
+	//発火する閾値
+	int shotThreshold = 0;
 
 	//ごみの数
 	int trashNumber = 0;
@@ -269,6 +274,21 @@ private:
 
 	}
 
+	void setShotThreshold() {
+
+		const int sendBlock = attackScore / 5;
+
+		shotThreshold = 250;
+
+		if (Share::getEnFreeSpace() < sendBlock)
+			shotThreshold = 0;
+
+		if (obstacleNumber > 0 && sendBlock > obstacleNumber)
+			shotThreshold = 0;
+		
+	}
+
+
 	void setTotalScore() {
 
 		totalScore -= obstacleHeightSum;
@@ -281,10 +301,12 @@ private:
 		totalScore -= obstacleNumber * 10;
 
 		totalScore += chainScore * 10;
-		//相手と自分の状況をみて閾値を決める
-		totalScore += attackScore < 250 ? attackScore * 10 : attackScore * 20;
 
-		totalScore -= chainScore < 250 ? 0 : trashNumber * 3;
+		//相手と自分の状況をみて閾値を決める
+
+		totalScore += attackScore < shotThreshold ? attackScore * 10 : attackScore * 20;
+
+		//totalScore -= chainScore < 250 ? 0 : trashNumber * 3;
 
 	}
 
