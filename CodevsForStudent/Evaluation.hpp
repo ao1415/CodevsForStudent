@@ -193,10 +193,10 @@ private:
 			const int rsub = blockTop[x] - r;
 
 			if (lsub >= sub && rsub >= sub)
-				blockFlatScore++;
+				blockFlatScore += max(lsub, rsub) - sub + 1;
 
 			if (lsub <= -sub && rsub <= -sub)
-				blockFlatScore++;
+				blockFlatScore += -min(lsub, rsub) - sub + 1;
 
 		}
 	}

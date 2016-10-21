@@ -128,7 +128,6 @@ private:
 
 	const int disBlocks(StageArray& stage) const {
 
-		//*
 		StageArray next = stage;
 
 		int count = 0;
@@ -176,58 +175,6 @@ private:
 		}
 
 		stage = move(next);
-
-		/*/
-
-		StageArray next = stage;
-
-		int count = 0;
-
-		//âE, ç∂â∫, â∫, âEâ∫
-		const Point direction[] = { Point(1,0),Point(-1,1),Point(0,1),Point(1,1) };
-
-		for (int y = 0; y < stage.getHeight(); y++)
-		{
-			for (int x = 0; x < stage.getWidth(); x++)
-			{
-				if (stage[y][x] == 0) continue;
-
-				//ï˚å¸
-				for (const auto& dire : direction)
-				{
-					int add = stage[y][x];
-					Point p = Point(x, y);
-
-					//íTç∏
-					for (int i = 1; i < StageHeight; i++)
-					{
-						p += dire;
-
-						if (!inside(p) || stage[p] == EmptyBlock) break;
-
-						add += stage[p];
-
-						//10Ç…Ç»Ç¡ÇΩ
-						if (add == AddScore)
-						{
-							for (int j = i; j >= 0; j--)
-							{
-								next[p] = EmptyBlock;
-								count++;
-								p -= dire;
-							}
-							break;
-						}
-						else if (add > AddScore)
-							break;
-					}
-				}
-			}
-		}
-
-		stage = move(next);
-
-		//*/
 
 		return count;
 	}
