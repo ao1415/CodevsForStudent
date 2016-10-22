@@ -365,14 +365,12 @@ private:
 		totalScore += blockLink;
 
 		totalScore -= blockFlatScore * 1000;
-		totalScore -= shapeError * 5;
+		totalScore -= shapeError * 10;
 		totalScore -= triggerHeight * 100;
 
 		totalScore -= obstacleNumber * 10;
 
 		totalScore += chainScore * 10;
-
-		//‘Šè‚Æ©•ª‚Ìó‹µ‚ğ‚İ‚Äè‡’l‚ğŒˆ‚ß‚é
 
 		totalScore += attackScore < shotThreshold ? attackScore * 10 : attackScore * 20;
 
