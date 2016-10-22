@@ -266,7 +266,7 @@ private:
 
 						const int nblockTurn = find_blockTurn(num);
 						//const int turnSub = (nblockTurn - turn - 1) / 4;
-						const double turnSub = (nblockTurn - turn - 1) / 4.0;
+						const double turnSub = (nblockTurn - turn - 1) / (s < 50 ? 12.0 : 4.0);
 
 						s = (int)(s*exp(-turnSub));
 

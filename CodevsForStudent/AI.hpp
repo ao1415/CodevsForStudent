@@ -18,6 +18,8 @@ public:
 		now.command.clear();
 		now.score = 0;
 
+		Data topData = now;
+
 		priority_queue<Data> qData;
 		qData.emplace(now);
 
@@ -86,17 +88,19 @@ public:
 				qData.pop();
 			}
 			qData.swap(qNext);
+			if (!qData.empty())
+				topData = qData.top();
 		}
 
 		if (!qData.empty())
 		{
 			//qData.top().scoreBoard[0].show();
-			qData.top().scoreBoard[0].showTotalScore();
-			addScore += qData.top().scoreBoard[0].get();
+			topData.scoreBoard[0].showTotalScore();
+			addScore += topData.scoreBoard[0].get();
 			//qData.top().scoreBoard[0].showAttackScore();
 			//cerr << "スコア:" << addScore << endl;
 			//cerr << "総合スコア\t\t:" << qData.top().score << endl;
-			return qData.top().command;
+			return topData.command;
 		}
 
 		cerr << "詰みです" << endl;
