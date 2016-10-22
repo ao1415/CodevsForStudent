@@ -97,6 +97,7 @@ public:
 
 	}
 
+	//ゲームオーバーならばtrue
 	bool isDead(const StageArray& stage) const {
 
 		for (int y = 0; y < 3; y++)
@@ -111,6 +112,21 @@ public:
 		return false;
 	}
 
+	StageArray csetBlocks(const StageArray& stage, const PackArray& pack, const int pos) const {
+
+		StageArray next = stage;
+
+		for (int y = 0; y < PackSize; y++)
+		{
+			for (int x = 0; x < PackSize; x++)
+			{
+				if (0 <= x + pos && x + pos < next.getWidth())
+					next[y][x + pos] = pack[y][x];
+			}
+		}
+
+		return next;
+	}
 	void setBlocks(StageArray& stage, const PackArray& pack, const int pos) const {
 
 		for (int y = 0; y < PackSize; y++)

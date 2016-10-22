@@ -12,6 +12,9 @@ public:
 
 		searchBlockHeight(_stage);
 		addObstacleHeight(_stage);
+
+		searchBlockNumber(_stage);
+		searchAdjacentBlock(_stage);
 		searchLinkNumber(_stage);
 
 		evaluationBlockFlat(_stage);
@@ -26,18 +29,8 @@ public:
 		return totalScore;
 	}
 	const int getScore(const StageArray& _stage, const int _obstacleNumber, const int _attackScore, const int _turn, const Evaluation& _enemy) {
-		turn = _turn;
-		obstacleNumber = _obstacleNumber;
-		attackScore = _attackScore;
 
-		searchBlockHeight(_stage);
-		addObstacleHeight(_stage);
-		searchLinkNumber(_stage);
-
-		evaluationBlockFlat(_stage);
-		evaluationShapeError(_stage);
-
-		searchChain(_stage);
+		getScore(_stage, _obstacleNumber, _attackScore, _turn);
 
 		setShotThreshold(_enemy);
 
@@ -83,8 +76,15 @@ private:
 
 	//ステージ上のお邪魔ブロックの高さの総和
 	int obstacleHeightSum = 0;
+
+	//ブロックの数
+	int blockNumber = 0;
 	//10未満で繋がったブロック数
 	int blockLink = 0;
+	//5以下の同じ数字が隣り合っている数
+	int lowerEqualNumber;
+	//6以上の同じ数字が隣り合っている数
+	int upperEqualNumber;
 
 	//ブロックの山谷の数
 	int blockFlatScore = 0;
@@ -158,17 +158,32 @@ private:
 			}
 		}
 	}
+
+	//ブロックの数をカウントする
+	void searchBlockNumber(const StageArray& stage) {
+		blockNumber = 0;
+
+		for (int x = 0; x < stage.getWidth(); x++)
+		{
+			for (int y = 0; y < blockTop[x]; y++)
+			{
+				if (stage[stage.getHeight() - y - 1][x] != ObstacleBlock)
+					blockNumber++;
+			}
+		}
+
+	}
 	//10未満で繋がったブロック数を得る
 	void searchLinkNumber(const StageArray& stage) {
 
 		blockLink = 0;
 
-		//右, 左下, 下, 右下
-		const Point direction[] = { Point(1,0),Point(-1,1),Point(0,1),Point(1,1) };
+		//上, 右上, 右, 右下
+		const Point direction[] = { Point(0,-1),Point(1,-1),Point(1,0),Point(1,1) };
 
-		for (int y = PackSize; y < stage.getHeight(); y++)
+		for (int x = 0; x < stage.getWidth(); x++)
 		{
-			for (int x = 0; x < stage.getWidth(); x++)
+			for (int y = stage.getHeight() - 1; y >= 0 && stage[y][x] != EmptyBlock; y--)
 			{
 				//ブロックの10以下の連結の検索
 				for (const auto& dire : direction)
@@ -189,6 +204,33 @@ private:
 							blockLink++;
 						else
 							break;
+					}
+				}
+			}
+		}
+
+	}
+	//隣り合っている数字を調べる
+	void searchAdjacentBlock(const StageArray& stage) {
+
+		lowerEqualNumber = 0;
+		upperEqualNumber = 0;
+
+		const Point direction[] = { Point(-1,-1),Point(0,-1),Point(1,-1),Point(-1,0),Point(1,0),Point(-1,1),Point(0,1),Point(1,1) };
+
+		for (int x = 0; x < stage.getWidth(); x++)
+		{
+			for (int y = 0; y < blockTop[x]; y++)
+			{
+				const Point pos(x, stage.getHeight() - y - 1);
+
+				for (const auto& dire : direction)
+				{
+					const Point p = pos + dire;
+					if (inside(p) && stage[p] == stage[pos])
+					{
+						if (stage[pos] > 5) upperEqualNumber++;
+						else lowerEqualNumber++;
 					}
 				}
 			}
@@ -259,7 +301,12 @@ private:
 		StageArray maxStage;
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
-			for (int y = 0; y < PackSize; y++)
+			const int lh = x - 1 < 0 ? 0 : blockTop[x - 1];
+			const int rh = x + 1 >= (int)blockTop.size() ? 0 : blockTop[x + 1];
+
+			const int subh = max(1, max(lh, rh) - blockTop[x]);
+
+			for (int y = 0; y < subh; y++)
 			{
 				const Point point = Point(x, stage.getHeight() - blockTop[x] - 1 - y);
 				for (const auto& dire : direction)
@@ -285,8 +332,8 @@ private:
 						simulator.next(checkStage, s);
 
 						const int nblockTurn = find_blockTurn(num);
-						//const int turnSub = (nblockTurn - turn - 1) / 4;
-						const double turnSub = (nblockTurn - turn - 1) / (s < 50 ? 12.0 : 4.0);
+						const int turnSub = (nblockTurn - turn - 1) / 4;
+						//const double turnSub = (nblockTurn - turn - 1) / (s < 50 ? 12.0 : 4.0);
 
 						s = (int)(s*exp(-turnSub));
 
@@ -362,7 +409,11 @@ private:
 	void setTotalScore() {
 
 		totalScore -= obstacleHeightSum;
+
+		totalScore += blockNumber;
 		totalScore += blockLink;
+		totalScore -= lowerEqualNumber * 1;
+		totalScore -= upperEqualNumber * 3;
 
 		totalScore -= blockFlatScore * 1000;
 		totalScore -= shapeError * 10;
@@ -372,7 +423,8 @@ private:
 
 		totalScore += chainScore * 10;
 
-		totalScore += attackScore < shotThreshold ? attackScore * 10 : attackScore * 20;
+		totalScore += attackScore < shotThreshold ? -attackScore : attackScore * 20;
+		//totalScore -= attackScore <= 10 ? attackScore * 10 : 0;
 
 		//totalScore -= chainScore < 250 ? 0 : trashNumber * 3;
 
