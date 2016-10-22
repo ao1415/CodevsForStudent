@@ -13,7 +13,7 @@ public:
 		searchBlockHeight(_stage);
 		addObstacleHeight(_stage);
 
-		searchBlockNumber(_stage);
+		//searchBlockNumber(_stage);
 		searchAdjacentBlock(_stage);
 		searchLinkNumber(_stage);
 
@@ -301,12 +301,13 @@ private:
 		StageArray maxStage;
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
-			const int lh = x - 1 < 0 ? 0 : blockTop[x - 1];
-			const int rh = x + 1 >= (int)blockTop.size() ? 0 : blockTop[x + 1];
+			//const int lh = x - 1 < 0 ? 0 : blockTop[x - 1];
+			//const int rh = x + 1 >= (int)blockTop.size() ? 0 : blockTop[x + 1];
 
-			const int subh = max(1, max(lh, rh) - blockTop[x]);
+			//const int subh = max(1, max(lh, rh) - blockTop[x]);
 
-			for (int y = 0; y < subh; y++)
+			//for (int y = 0; y < subh; y++)
+			for (int y = 0; y < PackSize; y++)
 			{
 				const Point point = Point(x, stage.getHeight() - blockTop[x] - 1 - y);
 				for (const auto& dire : direction)
@@ -332,8 +333,8 @@ private:
 						simulator.next(checkStage, s);
 
 						const int nblockTurn = find_blockTurn(num);
-						const int turnSub = (nblockTurn - turn - 1) / 4;
-						//const double turnSub = (nblockTurn - turn - 1) / (s < 50 ? 12.0 : 4.0);
+						//const int turnSub = (nblockTurn - turn - 1) / 4;
+						const double turnSub = (nblockTurn - turn - 1) / (s < 50 ? 12.0 : 4.0);
 
 						s = (int)(s*exp(-turnSub));
 
@@ -399,7 +400,7 @@ private:
 
 		if (turnSub == 1 && sendBlock > 10)
 		{
-			shotThreshold = 0;
+			//shotThreshold = 0;
 			return;
 		}
 
@@ -410,13 +411,13 @@ private:
 
 		totalScore -= obstacleHeightSum;
 
-		totalScore += blockNumber;
+		//totalScore += blockNumber;
 		totalScore += blockLink;
-		totalScore -= lowerEqualNumber * 1;
+		totalScore += lowerEqualNumber * 1;
 		totalScore -= upperEqualNumber * 3;
 
-		totalScore -= blockFlatScore * 1000;
-		totalScore -= shapeError * 10;
+		totalScore -= blockFlatScore * 500;
+		totalScore -= shapeError * 5;
 		totalScore -= triggerHeight * 100;
 
 		totalScore -= obstacleNumber * 10;
