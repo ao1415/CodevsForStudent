@@ -25,6 +25,26 @@ public:
 
 		return totalScore;
 	}
+	const int getScore(const StageArray& _stage, const int _obstacleNumber, const int _attackScore, const int _turn, const Evaluation& _enemy) {
+		turn = _turn;
+		obstacleNumber = _obstacleNumber;
+		attackScore = _attackScore;
+
+		searchBlockHeight(_stage);
+		addObstacleHeight(_stage);
+		searchLinkNumber(_stage);
+
+		evaluationBlockFlat(_stage);
+		evaluationShapeError(_stage);
+
+		searchChain(_stage);
+
+		setShotThreshold(_enemy);
+
+		setTotalScore();
+
+		return totalScore;
+	}
 
 	void show() const {
 		cerr << "お邪魔配置スコア\t:" << obstacleHeightSum << endl;
@@ -54,7 +74,7 @@ public:
 		cerr << "チェインスコア:" << attackScore << endl;
 	}
 
-	const int get() const { return attackScore; }
+	const int getAttackScore() const { return attackScore; }
 
 private:
 
@@ -299,6 +319,44 @@ private:
 			shotThreshold = 0;
 
 	}
+	void setShotThreshold(const Evaluation& enemy) {
+
+		const auto& blockContainPacks = Share::getBlockContainPacks();
+		const auto find_blockTurn = [&](const int num) {
+			for (const auto& val : blockContainPacks[num])
+				if (val > turn) return val;
+			return 1000;
+		};
+
+		const int sendBlock = attackScore / 5;
+
+		shotThreshold = 250;
+
+		if (Share::getEnFreeSpace() < sendBlock)
+		{
+			if (enemy.chainScore < chainScore)
+			{
+				shotThreshold = 0;
+				return;
+			}
+		}
+
+		if (obstacleNumber > 0 && sendBlock > obstacleNumber)
+		{
+			shotThreshold = 0;
+			return;
+		}
+
+		const int nblockTurn = find_blockTurn(enemy.triggerBlock);
+		const double turnSub = nblockTurn - turn;
+
+		if (turnSub == 1 && sendBlock > 10)
+		{
+			shotThreshold = 0;
+			return;
+		}
+
+	}
 
 
 	void setTotalScore() {
@@ -306,7 +364,7 @@ private:
 		totalScore -= obstacleHeightSum;
 		totalScore += blockLink;
 
-		totalScore += blockFlatScore;
+		totalScore -= blockFlatScore * 1000;
 		totalScore -= shapeError * 5;
 		totalScore -= triggerHeight * 100;
 

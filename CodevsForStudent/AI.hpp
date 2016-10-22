@@ -18,6 +18,18 @@ public:
 		now.command.clear();
 		now.score = 0;
 
+		Data enemy;
+		{
+			enemy.stage = Share::getEnStage();
+			enemy.obstacle = Share::getEnObstacle();
+			enemy.command.clear();
+
+			Evaluation evaluation;
+			enemy.score = evaluation.getScore(enemy.stage, enemy.obstacle, 0, Share::getNow());
+
+			enemy.evaluation.emplace_back(evaluation);
+		}
+
 		Data topData = now;
 
 		priority_queue<Data> qData;
@@ -63,18 +75,15 @@ public:
 						if (!simulator.isDead(top.stage))
 						{
 							const size_t hash = Hash::FNVa((char*)top.stage.data(), sizeof(StageArray));
+
 							if (hashSet.find(hash) == hashSet.end())
 							{
 								hashSet.insert(hash);
 
-								//ScoreBoard scoreBoard;
-								//top.score += eval(top, score, scoreBoard);
-								//top.score = eval(top, score, scoreBoard);
-
 								Evaluation evaluation;
 								top.score += evaluation.getScore(top.stage, top.obstacle, score, turn);
 
-								top.scoreBoard.emplace_back(evaluation);
+								top.evaluation.emplace_back(evaluation);
 
 								top.obstacle = obstacle;
 								if (top.command.empty()) top.command = toCommand(pos, r);
@@ -94,12 +103,8 @@ public:
 
 		if (!qData.empty())
 		{
-			//qData.top().scoreBoard[0].show();
-			topData.scoreBoard[0].showTotalScore();
-			addScore += topData.scoreBoard[0].get();
-			//qData.top().scoreBoard[0].showAttackScore();
-			//cerr << "スコア:" << addScore << endl;
-			//cerr << "総合スコア\t\t:" << qData.top().score << endl;
+			topData.evaluation[0].showTotalScore();
+			addScore += topData.evaluation[0].getAttackScore();
 			return topData.command;
 		}
 
@@ -115,7 +120,7 @@ private:
 		int score;
 		string command;
 
-		vector<Evaluation> scoreBoard;
+		vector<Evaluation> evaluation;
 
 		const bool operator<(const Data& d) const { return score < d.score; }
 	};
