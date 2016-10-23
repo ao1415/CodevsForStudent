@@ -7,61 +7,107 @@ class AI {
 public:
 
 	const string think() {
+		string com = "0 0";
 
 		const auto packs = Share::getPacks();
 		Simulator simulator;
 
-		int obstacle = Share::getMyObstacle();
+		Data now;
+		now.stage = Share::getMyStage();
+		now.obstacle = Share::getMyObstacle();
+		now.command.clear();
+		now.score = 0;
 
-		const auto pack = packs[Share::getNow()].getFullObstacle(obstacle);
-		const auto packArr = pack.getArray();
-		const auto sides = pack.getSide();
+		Data topData = now;
 
-		const auto stage = Share::getMyStage();
+		priority_queue<Data> qData;
+		qData.emplace(now);
 
-		int maxScore = INT32_MIN;
-		Command maxCommand;
+		const int Turn = 10;
+		const int BeamWidth = 10;
 
-		for (int r = 0; r < Rotation; r++)
+		for (int t = 0; t < Turn; t++)
 		{
-			const int packWidth = sides[r].second - sides[r].first + 1;
-			const int left = 0 - sides[r].first;
-			const int right = StageWidth - packWidth + 1 - sides[r].first;
+			const int turn = Share::getNow() + t;
+			if (turn >= Share::getTurn()) break;
 
-			for (int pos = left; pos < right; pos++)
+			priority_queue<Data> qNext;
+
+			set<size_t> hashSet;
+
+			for (int i = 0; i < BeamWidth; i++)
 			{
-				int score;
-				auto rStage(simulator.csetBlocks(stage, packArr[r], pos));
-				simulator.fall(rStage);
-				simulator.next(rStage, score);
+				if (qData.empty()) break;
 
-				if (!simulator.isDead(rStage))
+				int obstacle = qData.top().obstacle;
+
+				const auto pack = packs[turn].getFullObstacle(obstacle);
+				const auto packArr = pack.getArray();
+				const auto sides = pack.getSide();
+
+				for (int r = 0; r < Rotation; r++)
 				{
-					Evaluation evaluation;
-					int eval = evaluation.getScore(rStage, obstacle, score, Share::getNow());
+					const int packWidth = sides[r].second - sides[r].first + 1;
+					const int left = 0 - sides[r].first;
+					const int right = StageWidth - packWidth + 1 - sides[r].first;
 
-					if (maxScore < eval)
+					for (int pos = left; pos < right; pos++)
 					{
-						maxScore = eval;
-						maxCommand.pos = pos;
-						maxCommand.rota = r;
+						Data top = qData.top();
+						simulator.setBlocks(top.stage, packArr[r], pos);
+						simulator.fall(top.stage);
+
+						int score;
+						simulator.next(top.stage, score);
+
+						if (!simulator.isDead(top.stage))
+						{
+							const size_t hash = Hash::FNVa((char*)top.stage.data(), sizeof(StageArray));
+							if (hashSet.find(hash) == hashSet.end())
+							{
+								hashSet.insert(hash);
+
+								//ScoreBoard scoreBoard;
+								//top.score += eval(top, score, scoreBoard);
+								//top.score = eval(top, score, scoreBoard);
+
+								Evaluation evaluation;
+								top.score += evaluation.getScore(top.stage, top.obstacle, score, turn);
+
+								top.scoreBoard.emplace_back(evaluation);
+
+								top.obstacle = obstacle;
+								if (top.command.empty()) top.command = toCommand(pos, r);
+
+								qNext.emplace(top);
+							}
+						}
+
 					}
 				}
+				qData.pop();
 			}
+			qData.swap(qNext);
+			if (!qData.empty())
+				topData = qData.top();
 		}
 
-		return maxCommand.toString();
+		if (!qData.empty())
+		{
+			//qData.top().scoreBoard[0].show();
+			topData.scoreBoard[0].showTotalScore();
+			addScore += topData.scoreBoard[0].get();
+			//qData.top().scoreBoard[0].showAttackScore();
+			//cerr << "スコア:" << addScore << endl;
+			//cerr << "総合スコア\t\t:" << qData.top().score << endl;
+			return topData.command;
+		}
+
+		cerr << "詰みです" << endl;
+		return com;
 	}
 
 private:
-
-	struct Command {
-		int pos = 0;
-		int rota = 0;
-
-		const string toString() const { return to_string(pos) + " " + to_string(rota); }
-
-	};
 
 	struct Data {
 		StageArray stage;
@@ -69,7 +115,7 @@ private:
 		int score;
 		string command;
 
-		vector<Evaluation> evaluation;
+		vector<Evaluation> scoreBoard;
 
 		const bool operator<(const Data& d) const { return score < d.score; }
 	};
