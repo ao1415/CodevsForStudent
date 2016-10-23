@@ -501,7 +501,7 @@ private:
 
 		//totalScore -= chainScore < 250 ? 0 : trashNumber * 3;
 
-		totalScore += score * 10;
+		totalScore += score * 15;
 
 	}
 
