@@ -400,7 +400,7 @@ private:
 
 		if (turnSub == 1 && sendBlock > 10)
 		{
-			//shotThreshold = 0;
+			shotThreshold = 0;
 			return;
 		}
 
@@ -413,7 +413,7 @@ private:
 
 		//totalScore += blockNumber;
 		totalScore += blockLink;
-		totalScore += lowerEqualNumber * 1;
+		//totalScore += lowerEqualNumber * 1;
 		totalScore -= upperEqualNumber * 3;
 
 		totalScore -= blockFlatScore * 500;

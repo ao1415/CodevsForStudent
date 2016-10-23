@@ -40,7 +40,7 @@ public:
 		Timer timer(2000, Timer::MilliSecond);
 		timer.start();
 
-		for (int c = 0; c < 2; c++)
+		for (int c = 0; c < 1; c++)
 		{
 			for (int t = 0; t < Turn - 1; t++)
 			{
