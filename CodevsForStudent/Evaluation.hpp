@@ -6,6 +6,7 @@ class Evaluation {
 public:
 
 	const int getScore(const StageArray& _stage, const int _obstacleNumber, const int _attackScore, const int _turn) {
+
 		turn = _turn;
 		obstacleNumber = _obstacleNumber;
 		attackScore = _attackScore;
@@ -21,6 +22,7 @@ public:
 		evaluationShapeError(_stage);
 
 		searchChain(_stage);
+		searchTrashNumber();
 
 		setShotThreshold();
 
@@ -30,7 +32,22 @@ public:
 	}
 	const int getScore(const StageArray& _stage, const int _obstacleNumber, const int _attackScore, const int _turn, const Evaluation& _enemy) {
 
-		getScore(_stage, _obstacleNumber, _attackScore, _turn);
+		turn = _turn;
+		obstacleNumber = _obstacleNumber;
+		attackScore = _attackScore;
+
+		searchBlockHeight(_stage);
+		addObstacleHeight(_stage);
+
+		searchBlockNumber(_stage);
+		searchAdjacentBlock(_stage);
+		searchLinkNumber(_stage);
+
+		evaluationBlockFlat(_stage);
+		evaluationShapeError(_stage);
+
+		searchChain(_stage);
+		searchTrashNumber();
 
 		setShotThreshold(_enemy);
 
@@ -39,9 +56,18 @@ public:
 		return totalScore;
 	}
 
+	void set(const int _score) { score = _score; }
+	const int get() const { return score; }
+
 	void show() const {
-		cerr << "お邪魔配置スコア\t:" << obstacleHeightSum << endl;
-		cerr << "結合スコア\t\t:" << blockLink << endl << endl;
+		cerr << "スコア\t\t:" << score << endl << endl;
+
+		cerr << "お邪魔配置スコア\t:" << obstacleHeightSum << endl << endl;
+
+		cerr << "ブロック数\t\t:" << blockNumber << endl;
+		cerr << "結合スコア\t\t:" << blockLink << endl;
+		cerr << "5以下の結合\t\t:" << lowerEqualNumber << endl;
+		cerr << "6以上の結合\t\t:" << upperEqualNumber << endl << endl;
 
 		cerr << "凹凸スコア\t\t:" << blockFlatScore << endl;
 		cerr << "ブロックの高さ平均\t:" << blockHeightAverage << endl;
@@ -50,9 +76,11 @@ public:
 
 		cerr << "お邪魔ブロック数\t:" << obstacleNumber << endl << endl;
 
+		cerr << "想定連鎖数\t\t:" << chainNumber << endl;
 		cerr << "想定連鎖スコア\t\t:" << chainScore << endl;
 		cerr << "発火連鎖スコア\t\t:" << attackScore << endl << endl;
 
+		cerr << "発火閾値\t\t:" << shotThreshold << endl;
 		cerr << "連鎖尾スコア\t\t:" << trashNumber << endl << endl;
 
 		cerr << "総合スコア\t\t:" << totalScore << endl;
@@ -73,6 +101,8 @@ private:
 
 	//現在のターン数
 	int turn = 0;
+	//現在のスコア
+	int score = 0;
 
 	//ステージ上のお邪魔ブロックの高さの総和
 	int obstacleHeightSum = 0;
@@ -99,10 +129,15 @@ private:
 	//お邪魔ブロックの数
 	int obstacleNumber = 0;
 
+	//組まれている連鎖の数
+	int chainNumber = 0;
 	//組まれている連鎖のスコア
 	int chainScore = 0;
 	//発火した時のスコア
 	int attackScore = 0;
+
+	//最高連鎖発火後のステージ
+	StageArray chinShotStage;
 
 	//発火する閾値
 	int shotThreshold = 0;
@@ -282,6 +317,7 @@ private:
 	//ここがメイン評価になる
 	void searchChain(const StageArray& stage) {
 
+		chainNumber = 0;
 		chainScore = 0;
 		triggerHeight = 0;
 
@@ -297,8 +333,9 @@ private:
 		//左上・右上・左・右・左下・下・右下
 		const Point direction[] = { Point(-1,-1),Point(1,-1),Point(-1,0),Point(1,0),Point(-1,1),Point(0,1),Point(1,1) };
 
+		int count = 0;
+
 		//連鎖の検索
-		StageArray maxStage;
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
 			const int lh = x - 1 < 0 ? 0 : blockTop[x - 1];
@@ -329,25 +366,60 @@ private:
 							checkStage[stage.getHeight() - blockTop[x] - 1 - i][x] = ObstacleBlock;
 
 						checkStage[point] = num;
-						simulator.next(checkStage, s);
+						const int chain = simulator.next(checkStage, s);
 
 						const int nblockTurn = find_blockTurn(num);
-						const int turnSub = (nblockTurn - turn - 1) / 4;
-						//const double turnSub = (nblockTurn - turn - 1) / (s < 50 ? 12.0 : 4.0);
+						//const int turnSub = (nblockTurn - turn - 1) / 4;
+						const double turnSub = (nblockTurn - turn - 1) / (s < 50 ? 12.0 : 4.0);
 
 						s = (int)(s*exp(-turnSub));
 
-						if (chainScore < s)
+						//chainNumber = max(chainNumber, chain);
+						//chainScore = max(chainScore, s);
+						//triggerHeight = max(triggerHeight, abs(blockTop[x] + y - blockHeightAverage));
+						//count++;
+
+						//*
+						if (chainNumber < chain)
 						{
+							chainNumber = chain;
 							chainScore = s;
 							triggerHeight = abs(blockTop[x] + y - blockHeightAverage);
-							maxStage = move(checkStage);
+							chinShotStage = move(checkStage);
 							triggerBlock = num;
 							triggerPoint = point;
 						}
+						else if (chainNumber == chain && chainScore < s)
+						{
+							chainNumber = chain;
+							chainScore = s;
+							triggerHeight = abs(blockTop[x] + y - blockHeightAverage);
+							chinShotStage = move(checkStage);
+							triggerBlock = num;
+							triggerPoint = point;
+						}
+						//*/
 					}
 
 				}
+			}
+		}
+
+		//chainNumber /= count;
+		//chainScore /= count;
+		//triggerHeight /= count;
+
+	}
+
+	void searchTrashNumber() {
+
+		for (int x = 0; x < chinShotStage.getWidth(); x++)
+		{
+			for (int y = 0; y < blockTop[x]; y++)
+			{
+				const Point pos(x, chinShotStage.getHeight() - y - 1);
+				if (chinShotStage[pos] != ObstacleBlock)
+					trashNumber++;
 			}
 		}
 
@@ -410,23 +482,26 @@ private:
 
 		totalScore -= obstacleHeightSum;
 
-		totalScore += blockNumber;
+		//totalScore += blockNumber;
 		totalScore += blockLink;
 		totalScore -= lowerEqualNumber * 1;
-		totalScore -= upperEqualNumber * 3;
+		totalScore -= upperEqualNumber * 10;
 
-		totalScore -= blockFlatScore * 1000;
+		totalScore -= blockFlatScore * 300;
 		totalScore -= shapeError * 10;
-		totalScore -= triggerHeight * 100;
+		totalScore -= triggerHeight * 300;
 
 		totalScore -= obstacleNumber * 10;
 
-		totalScore += chainScore * 10;
+		totalScore += chainNumber * 1000;
 
+		totalScore += chainScore * 10;
 		totalScore += attackScore < shotThreshold ? -attackScore : attackScore * 20;
 		//totalScore -= attackScore <= 10 ? attackScore * 10 : 0;
 
 		//totalScore -= chainScore < 250 ? 0 : trashNumber * 3;
+
+		totalScore += score * 10;
 
 	}
 

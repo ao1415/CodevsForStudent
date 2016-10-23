@@ -75,7 +75,7 @@ public:
 	}
 	//全ての処理終了(参照渡し)
 	//あらかじめブロックを落としておいてください
-	void next(StageArray& stage, int& s) const {
+	const int next(StageArray& stage, int& s) const {
 
 		//キャッシュを作って高速化できるか試す
 		//std::map<size_t(ステージのハッシュ値), std::piar<StageArray(処理後のステージ), vector<int>(カウント配列)>
@@ -95,6 +95,7 @@ public:
 
 		s = score;
 
+		return chain;
 	}
 
 	//ゲームオーバーならばtrue

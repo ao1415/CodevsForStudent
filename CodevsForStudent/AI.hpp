@@ -15,13 +15,14 @@ public:
 		Data now;
 		now.stage = Share::getMyStage();
 		now.obstacle = Share::getMyObstacle();
-		now.command.clear();
 		now.score = 0;
-
-		Data topData = now;
+		now.evaluation.emplace_back(Evaluation());
+		now.evaluation.back().set(addScore);
 
 		priority_queue<Data> qData;
 		qData.emplace(now);
+
+		Data topData;
 
 		const int Turn = 10;
 		const int BeamWidth = 10;
@@ -72,12 +73,17 @@ public:
 								//top.score = eval(top, score, scoreBoard);
 
 								Evaluation evaluation;
-								top.score += evaluation.getScore(top.stage, top.obstacle, score, turn);
-
-								top.scoreBoard.emplace_back(evaluation);
+								evaluation.set(top.evaluation.back().get() + score);
+								top.score = evaluation.getScore(top.stage, top.obstacle, score, turn);
 
 								top.obstacle = obstacle;
-								if (top.command.empty()) top.command = toCommand(pos, r);
+
+								if (t == 0)
+								{
+									top.evaluation.emplace_back(evaluation);
+									top.command.pos = pos;
+									top.command.rota = r;
+								}
 
 								qNext.emplace(top);
 							}
@@ -92,15 +98,15 @@ public:
 				topData = qData.top();
 		}
 
-		if (!qData.empty())
+		if (topData.evaluation.size() > 1)
 		{
+			topData.evaluation[1].show();
+			addScore += topData.evaluation[1].getAttackScore();
 			//qData.top().scoreBoard[0].show();
-			topData.scoreBoard[0].showTotalScore();
-			addScore += topData.scoreBoard[0].get();
 			//qData.top().scoreBoard[0].showAttackScore();
 			//cerr << "スコア:" << addScore << endl;
 			//cerr << "総合スコア\t\t:" << qData.top().score << endl;
-			return topData.command;
+			return topData.command.toString();
 		}
 
 		cerr << "詰みです" << endl;
@@ -109,13 +115,19 @@ public:
 
 private:
 
+	struct Command {
+		int pos = 0;
+		int rota = 0;
+		const string toString() const { return to_string(pos) + " " + to_string(rota); }
+	};
+
 	struct Data {
 		StageArray stage;
 		int obstacle;
 		int score;
-		string command;
+		Command command;
 
-		vector<Evaluation> scoreBoard;
+		vector<Evaluation> evaluation;
 
 		const bool operator<(const Data& d) const { return score < d.score; }
 	};
