@@ -17,7 +17,11 @@ public:
 		//パターンが渡されている場合、そのパターンから探査する
 		//連鎖はなるべく2個か3個のブロックで行う。
 
-		return "0 0";
+		const auto attackCommands = attackThink();
+
+		const auto command = chainThink(attackCommands);
+
+		return command;
 	}
 
 private:
@@ -31,5 +35,19 @@ private:
 	struct Data {
 		Command command;
 	};
+
+	const vector<Command> attackThink() {
+
+		vector<Command> commands;
+
+
+
+		return commands;
+	}
+
+	const string chainThink(const vector<Command>& commands) {
+
+		return "0 0";
+	}
 
 };
