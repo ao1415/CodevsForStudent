@@ -117,10 +117,16 @@ private:
 
 							hashSet.insert(hash);
 
-							if (score2obstacle(score) - myObstacle >= score2obstacle(enMaxScore) - enObstacle)
+							const int mySendBlock = score2obstacle(score) - myObstacle;
+							const int enSendBlock = score2obstacle(enMaxScore) - enObstacle;
+
+							if (mySendBlock >= enSendBlock)
 							{
-								data.evaluation = Evaluation(data.stage, 0, myObstacle);
-								commands.push_back(data);
+								if (mySendBlock >= 50)
+								{
+									data.evaluation = Evaluation(data.stage, 0, myObstacle);
+									commands.push_back(data);
+								}
 							}
 							data.evaluation = Evaluation(data.stage, score, myObstacle);
 
@@ -131,7 +137,11 @@ private:
 			}
 		}
 
-		if (!commands.empty()) return commands;
+		if (!commands.empty())
+		{
+			cerr << "I”­‰ÎI" << endl;
+			return commands;
+		}
 
 		return allCommands;
 	}

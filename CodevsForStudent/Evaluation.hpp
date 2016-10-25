@@ -17,9 +17,7 @@ public:
 	const bool operator<(const Evaluation& e) const { return totalScore < e.totalScore; }
 
 	void show() const {
-		cerr << chainNumber << "連鎖" << endl;
-		cerr << chainScore << "点" << endl;
-		cerr << totalScore << "スコア" << endl;
+		cerr << "連鎖:" << chainNumber << ",スコア:" << chainScore << endl;
 	}
 
 private:
