@@ -121,7 +121,7 @@ public:
 		{
 			for (int x = 0; x < PackSize; x++)
 			{
-				if (0 <= x + pos && x + pos < next.getWidth())
+				if (0 <= x + pos && x + pos < stage.getWidth())
 					next[y][x + pos] = pack[y][x];
 			}
 		}

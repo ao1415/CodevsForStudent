@@ -16,7 +16,7 @@ int main() {
 	{
 		Share::update();
 
-		cerr << "turn:" << Share::getNow() << "================" << endl;
+		cerr << "turn:" << std::setw(3) << Share::getNow() << "================" << endl;
 
 		sw.start();
 		const string com = ai.think();

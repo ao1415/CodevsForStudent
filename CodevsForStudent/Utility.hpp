@@ -11,6 +11,7 @@
 #include <queue>
 #include <functional>
 #include <set>
+#include <cassert>
 
 using namespace std;
 
@@ -96,25 +97,25 @@ private:
 class Hash {
 public:
 
-	static const size_t FNV(const char* data, const size_t size) {
+	static const size_t FNV(const void* data, const size_t size) {
 		const size_t offset_basis = 2166136261;
 		const size_t FNV_prime = 16777619;
 
 		size_t hash = offset_basis;
 
 		for (size_t i = 0; i < size; i++)
-			hash = (hash*FNV_prime) ^ (data[i]);
+			hash = (hash*FNV_prime) ^ (((char*)data)[i]);
 
 		return hash;
 	}
-	static const size_t FNVa(const char* data, const size_t size) {
+	static const size_t FNVa(const void* data, const size_t size) {
 		const size_t offset_basis = 2166136261;
 		const size_t FNV_prime = 16777619;
 
 		size_t hash = offset_basis;
 
 		for (size_t i = 0; i < size; i++)
-			hash = (hash ^ (data[i])) * FNV_prime;
+			hash = (hash ^ (((char*)data)[i])) * FNV_prime;
 
 		return hash;
 	}
@@ -163,3 +164,5 @@ inline const bool inside(const int& x, const int& y) { return (0 <= x && x < Sta
 inline const bool inside(const Point& p) { return (0 <= p.x && p.x < StageWidth && 0 <= p.y && p.y < StageHeight + 3); }
 
 inline const string toCommand(int pos, int rota) { return std::to_string(pos) + " " + std::to_string(rota); }
+
+inline const int score2obstacle(const int score) { return score / 5; }
