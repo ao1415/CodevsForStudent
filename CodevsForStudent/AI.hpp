@@ -117,17 +117,8 @@ private:
 
 							hashSet.insert(hash);
 
-							const int mySendBlock = score2obstacle(score) - myObstacle;
-							const int enSendBlock = score2obstacle(enMaxScore) - enObstacle;
+							shotJudge(commands, data, score, myObstacle, enMaxScore, enObstacle);
 
-							if (mySendBlock >= enSendBlock)
-							{
-								if (mySendBlock >= 50)
-								{
-									data.evaluation = Evaluation(data.stage, 0, myObstacle);
-									commands.push_back(data);
-								}
-							}
 							data.evaluation = Evaluation(data.stage, score, myObstacle);
 
 							allCommands.emplace_back(data);
@@ -144,6 +135,38 @@ private:
 		}
 
 		return allCommands;
+	}
+
+	void shotJudge(vector<Data>& commands, Data& data, const int myScore, const int myObstacle, const int enScore, const int enObstacle) const {
+
+		const int mySendBlock = score2obstacle(myScore) - myObstacle;
+		const int enSendBlock = score2obstacle(enScore) - enObstacle;
+
+		if (mySendBlock >= enSendBlock)
+		{
+			if (mySendBlock >= 50)
+			{
+				data.evaluation = Evaluation(data.stage, 0, myObstacle);
+				commands.push_back(data);
+				return;
+			}
+			else if (mySendBlock >= Share::getEnFreeSpace()*0.8)
+			{
+				data.evaluation = Evaluation(data.stage, 0, myObstacle);
+				commands.push_back(data);
+				return;
+			}
+		}
+		else if (enObstacle >= 30)
+		{
+			if (enSendBlock - mySendBlock >= 5)
+			{
+				data.evaluation = Evaluation(data.stage, 0, myObstacle);
+				commands.push_back(data);
+				return;
+			}
+		}
+
 	}
 
 	const Command chainThink(const vector<Data>& commands) {
