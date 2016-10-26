@@ -8,9 +8,14 @@ public:
 	Evaluation() = default;
 	Evaluation(const StageArray& stage, const int score, const int obstacle) {
 
+		setTopBlock(stage);
+		evaluationBlockFlat(stage);
 		searchChain(stage, score, obstacle);
 
-		totalScore = chainNumber * 1000 + chainScore;
+		totalScore += chainNumber * 1000 + chainScore;
+
+		totalScore -= blockFlatScore * 1000;
+		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
 
 	}
 
@@ -22,15 +27,20 @@ public:
 
 private:
 
+	array<int, StageWidth> blockTop;
+
 	int chainNumber = 0;
+	int chainNumberTrigger = StageHeight;
 	int chainScore = 0;
+	int chainScoreTrigger = StageHeight;
+
+	int blockFlatScore = 0;
 
 	int totalScore = 0;
 
-	void searchChain(const StageArray& stage, const int score, const int obstacle) {
+	void setTopBlock(const StageArray& stage) {
 
-		array<int, StageWidth> topBlock;
-		topBlock.fill(stage.getHeight() - 1);
+		blockTop.fill(stage.getHeight() - 1);
 
 		for (int x = 0; x < stage.getWidth(); x++)
 		{
@@ -38,11 +48,36 @@ private:
 			{
 				if (stage[y][x] == EmptyBlock)
 				{
-					topBlock[x] = y;
+					blockTop[x] = y;
 					break;
 				}
 			}
 		}
+
+	}
+
+	void evaluationBlockFlat(const StageArray& stage) {
+
+		const int sub = 6;
+
+		for (int x = 0; x < (int)blockTop.size(); x++)
+		{
+			const int l = ((x - 1 >= 0) ? blockTop[x - 1] : 3);
+			const int r = ((x + 1 < (int)blockTop.size()) ? blockTop[x + 1] : 3);
+
+			const int lsub = blockTop[x] - l;
+			const int rsub = blockTop[x] - r;
+
+			if (lsub >= sub && rsub >= sub)
+				blockFlatScore += max(lsub, rsub) - sub + 1;
+
+			if (lsub <= -sub && rsub <= -sub)
+				blockFlatScore += -min(lsub, rsub) - sub + 1;
+
+		}
+	}
+
+	void searchChain(const StageArray& stage, const int score, const int obstacle) {
 
 		const auto deleteCheck = [](const Point& pos, const StageArray& stage, const int n) {
 
@@ -73,7 +108,7 @@ private:
 			{
 				for (int dy = 0; dy < 3; dy++)
 				{
-					const Point point(x, topBlock[x] - dy);
+					const Point point(x, blockTop[x] - dy);
 
 					if (deleteCheck(point, stage, n))
 					{
@@ -82,8 +117,19 @@ private:
 						int score;
 						const int chain = simulator.next(next, score);
 
-						chainScore = max(chainScore, score);
-						chainNumber = max(chainNumber, chain);
+						if (score > chainScore || (score == chainScore && point.y < chainScoreTrigger))
+						{
+							chainScore = score;
+							chainScoreTrigger = point.y;
+						}
+						if (chain > chainNumber || (chain == chainNumber&& point.y < chainNumberTrigger))
+						{
+							chainNumber = chain;
+							chainNumberTrigger = point.y;
+						}
+
+						//chainScore = max(chainScore, score);
+						//chainNumber = max(chainNumber, chain);
 					}
 				}
 			}
