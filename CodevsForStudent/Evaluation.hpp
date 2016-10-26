@@ -106,17 +106,18 @@ private:
 		{
 			for (int x = 0; x < stage.getWidth(); x++)
 			{
-				for (int dy = 0; dy < 3; dy++)
+				//for (int dy = 0; dy < 3; dy++)
 				{
-					const Point point(x, blockTop[x] - dy);
+					//const Point point(x, blockTop[x] - dy);
+					const Point point(x, blockTop[x]);
 
 					if (deleteCheck(point, stage, n))
 					{
 						auto next = stage;
 
-						next[blockTop[x] - 0][x] = ObstacleBlock;
-						next[blockTop[x] - 1][x] = ObstacleBlock;
-						next[blockTop[x] - 2][x] = ObstacleBlock;
+						//next[blockTop[x] - 0][x] = ObstacleBlock;
+						//next[blockTop[x] - 1][x] = ObstacleBlock;
+						//next[blockTop[x] - 2][x] = ObstacleBlock;
 
 						next[point] = n;
 						int score;
