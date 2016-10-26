@@ -97,22 +97,24 @@ private:
 class Hash {
 public:
 
-	static const size_t FNV(const void* data, const size_t size) {
-		const size_t offset_basis = 2166136261;
-		const size_t FNV_prime = 16777619;
+	using Type = unsigned long long int;
 
-		size_t hash = offset_basis;
+	static const Type FNV(const void* data, const size_t size) {
+		const Type offset_basis = 2166136261;
+		const Type FNV_prime = 16777619;
+
+		Type hash = offset_basis;
 
 		for (size_t i = 0; i < size; i++)
 			hash = (hash*FNV_prime) ^ (((char*)data)[i]);
 
 		return hash;
 	}
-	static const size_t FNVa(const void* data, const size_t size) {
-		const size_t offset_basis = 2166136261;
-		const size_t FNV_prime = 16777619;
+	static const Type FNVa(const void* data, const size_t size) {
+		const Type offset_basis = 2166136261;
+		const Type FNV_prime = 16777619;
 
-		size_t hash = offset_basis;
+		Type hash = offset_basis;
 
 		for (size_t i = 0; i < size; i++)
 			hash = (hash ^ (((char*)data)[i])) * FNV_prime;

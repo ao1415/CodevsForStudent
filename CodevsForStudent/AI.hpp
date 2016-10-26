@@ -84,7 +84,7 @@ private:
 			const auto& myStage = Share::getMyStage();
 			int myObstacle = Share::getMyObstacle();
 
-			set<size_t> hashSet;
+			set<Hash::Type> hashSet;
 
 			const auto& myPack = packs[now].getFullObstacle(myObstacle);
 			const auto& myPackArr = myPack.getArray();
@@ -180,7 +180,7 @@ private:
 
 		Simulator simulator;
 		array<priority_queue<Data>, Turn + 1> qData;
-		array<set<size_t>, Turn> hashSet;
+		array<set<Hash::Type>, Turn> hashSet;
 
 		for (const auto& com : commands)
 		{
