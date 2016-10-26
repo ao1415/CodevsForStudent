@@ -179,8 +179,6 @@ private:
 		const int ChokudaiWidth = 1;
 
 		Simulator simulator;
-
-		//ŒvZŒ‹‰Ê‚ğŸ‚Ìƒ^[ƒ“‚É‚¿‰z‚¹‚é‚æ‚¤‚É‚·‚é
 		array<priority_queue<Data>, Turn + 1> qData;
 		array<set<size_t>, Turn> hashSet;
 

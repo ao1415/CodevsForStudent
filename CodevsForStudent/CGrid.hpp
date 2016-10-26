@@ -6,6 +6,7 @@ template<typename Type, size_t _Width, size_t _Height>
 class CGrid {
 private:
 
+	using MyType = CGrid<Type, _Width, _Height>;
 	using ContainerType = std::array<Type, _Width*_Height>;
 	using pointer = typename ContainerType::pointer;
 	using const_pointer = typename ContainerType::const_pointer;
@@ -15,13 +16,13 @@ public:
 	CGrid() { this->fill(Type()); }
 	CGrid(const Type& val) { this->fill(val); }
 
-	CGrid(const CGrid<Type, _Width, _Height>& g) = default;
-	CGrid(CGrid<Type, _Width, _Height>&& g) noexcept {
+	CGrid(const MyType& g) = default;
+	CGrid(MyType&& g) noexcept {
 		m_data = std::move(g.m_data);
 	}
 
-	CGrid<Type, _Width, _Height>& operator=(const CGrid<Type, _Width, _Height>& other) = default;
-	CGrid<Type, _Width, _Height>& operator=(CGrid<Type, _Width, _Height>&& other) = default;
+	MyType& operator=(const MyType& other) = default;
+	MyType& operator=(MyType&& other) = default;
 
 	bool isBounds(size_t y, size_t x) const noexcept {
 		return (0 <= y && y < _Height && 0 <= x && x < _Width);
@@ -77,6 +78,9 @@ public:
 
 	pointer data() { return &m_data[0]; }
 	const_pointer data() const { return m_data.data(); }
+
+	//’x‚©‚Á‚½
+	//void swap(MyType& other) { m_data.swap(other.m_data); }
 
 private:
 

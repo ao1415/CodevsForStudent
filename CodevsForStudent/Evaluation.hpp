@@ -113,10 +113,15 @@ private:
 					if (deleteCheck(point, stage, n))
 					{
 						auto next = stage;
+
+						next[blockTop[x] - 0][x] = ObstacleBlock;
+						next[blockTop[x] - 1][x] = ObstacleBlock;
+						next[blockTop[x] - 2][x] = ObstacleBlock;
+
 						next[point] = n;
 						int score;
 						const int chain = simulator.next(next, score);
-
+						/*
 						if (score > chainScore || (score == chainScore && point.y < chainScoreTrigger))
 						{
 							chainScore = score;
@@ -127,9 +132,9 @@ private:
 							chainNumber = chain;
 							chainNumberTrigger = point.y;
 						}
-
-						//chainScore = max(chainScore, score);
-						//chainNumber = max(chainNumber, chain);
+						*/
+						chainScore = max(chainScore, score);
+						chainNumber = max(chainNumber, chain);
 					}
 				}
 			}
