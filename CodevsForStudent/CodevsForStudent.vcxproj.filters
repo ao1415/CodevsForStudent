@@ -61,5 +61,8 @@
     <ClInclude Include="Evaluation.hpp">
       <Filter>ソース ファイル\AI</Filter>
     </ClInclude>
+    <ClInclude Include="Timer.hpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
