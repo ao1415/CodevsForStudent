@@ -9,7 +9,7 @@
 
 class Input;
 
-using StageArray = CGrid<int, StageWidth, StageHeight + 3>;
+using StageArray = CGrid<char, StageWidth, StageHeight + 3>;
 
 class Share {
 public:

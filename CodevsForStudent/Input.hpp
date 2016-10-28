@@ -38,7 +38,9 @@ public:
 		{
 			for (int x = 0; x < StageWidth; x++)
 			{
-				cin >> Share::myStage[y + 3][x];
+				int n;
+				cin >> n;
+				Share::myStage[y + 3][x] = n;
 			}
 		}
 		cin >> endStr;
@@ -48,7 +50,9 @@ public:
 		{
 			for (int x = 0; x < StageWidth; x++)
 			{
-				cin >> Share::enStage[y + 3][x];
+				int n;
+				cin >> n;
+				Share::enStage[y + 3][x] = n;
 			}
 		}
 		cin >> endStr;

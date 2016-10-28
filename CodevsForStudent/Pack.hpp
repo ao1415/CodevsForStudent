@@ -3,7 +3,7 @@
 #include "Utility.hpp"
 #include "CGrid.hpp"
 
-using PackArray = CGrid<int, PackSize, PackSize>;
+using PackArray = CGrid<char, PackSize, PackSize>;
 
 class Pack {
 public:
