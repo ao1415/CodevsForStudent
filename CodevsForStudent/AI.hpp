@@ -187,10 +187,11 @@ private:
 		array<priority_queue<Data>, Turn + 1> qData;
 		array<set<Hash::Type>, Turn> hashSet;
 
-		qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
-		//for (const auto& com : commands) { qData[0].push(com); }
+		//gcc‚ÅƒRƒ“ƒpƒCƒ‹‚Å‚«‚È‚©‚Á‚½
+		//qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
+		for (const auto& com : commands) { qData[0].push(com); }
 
-		Timer timer(1000, Timer::MilliSecond);
+		Timer timer(1000ms);
 		timer.start();
 
 		while (!timer)
