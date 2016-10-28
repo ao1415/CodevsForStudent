@@ -60,6 +60,8 @@ private:
 
 		int enMaxScore = 0;
 		int enObstacle = Share::getEnObstacle();
+
+		//ã√éã
 		{
 			const auto& enStage = Share::getEnStage();
 
@@ -85,6 +87,7 @@ private:
 			}
 		}
 
+		//çUåÇîªíf
 		{
 			const auto& myStage = Share::getMyStage();
 			int myObstacle = Share::getMyObstacle();
