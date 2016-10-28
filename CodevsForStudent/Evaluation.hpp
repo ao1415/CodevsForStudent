@@ -15,7 +15,8 @@ public:
 		totalScore += chainNumber * 1000 + chainScore;
 
 		totalScore -= blockFlatScore * 1000;
-		totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
+		
+		//totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
 		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
 
 	}

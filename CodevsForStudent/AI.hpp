@@ -17,6 +17,11 @@ public:
 		//パターンが渡されている場合、そのパターンから探査する
 		//連鎖はなるべく2個か3個のブロックで行う。
 
+		//凝視の改良を行う
+		//本当に打っても大丈夫か
+		//連鎖の伸びはどうなのか
+		//お邪魔の閾値の変動
+		//お邪魔対応の閾値の変動
 		const auto attackCommands = attackThink();
 
 		const auto command = chainThink(attackCommands);
