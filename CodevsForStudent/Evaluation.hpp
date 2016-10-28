@@ -119,11 +119,11 @@ private:
 
 		Simulator simulator;
 
-		const auto blockContainPacks = Share::getBlockContainPacks();
+		//const auto blockContainPacks = Share::getBlockContainPacks();
 
 		for (int n = 1; n < AddScore; n++)
 		{
-			int first = find_blockTurn(n, blockContainPacks, turn) - turn;
+			//int first = find_blockTurn(n, blockContainPacks, turn) - turn;
 
 			for (int x = 0; x < stage.getWidth(); x++)
 			{
@@ -136,7 +136,7 @@ private:
 					next[point] = n;
 					int score;
 					int chain = simulator.next(next, score);
-
+					/*
 					if (score > chainScore)
 					{
 						chainScore = score;
@@ -147,8 +147,9 @@ private:
 						chainNumber = chain;
 						chainNumberTriggerRange = first;
 					}
-					//chainScore = max(chainScore, score);
-					//chainNumber = max(chainNumber, chain);
+					*/
+					chainScore = max(chainScore, score);
+					chainNumber = max(chainNumber, chain);
 				}
 			}
 		}
