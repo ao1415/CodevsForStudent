@@ -15,6 +15,7 @@ public:
 		totalScore += chainNumber * 1000 + chainScore;
 
 		totalScore -= blockFlatScore * 1000;
+		totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
 		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
 
 	}
@@ -31,8 +32,10 @@ private:
 
 	int chainNumber = 0;
 	int chainNumberTrigger = StageHeight;
+	int chainNumberTriggerRange = INT32_MAX;
 	int chainScore = 0;
 	int chainScoreTrigger = StageHeight;
+	int chainScoreTriggerRange = INT32_MAX;
 
 	int blockFlatScore = 0;
 
@@ -107,15 +110,15 @@ private:
 			return 1000;
 		};
 
-		Simulator simulator;
-
-		const auto blockContainPacks = Share::getBlockContainPacks();
-
 		const auto nearEval = [](const int range) {
 			const double x = (range - 1) / 3.3;
 			const double r = exp(-(x*x) / 2);
 			return r;
 		};
+
+		Simulator simulator;
+
+		const auto blockContainPacks = Share::getBlockContainPacks();
 
 		for (int n = 1; n < AddScore; n++)
 		{
@@ -133,11 +136,18 @@ private:
 					int score;
 					int chain = simulator.next(next, score);
 
-					score = int(score*nearEval(first));
-					chain = int(chain*nearEval(first));
-
-					chainScore = max(chainScore, score);
-					chainNumber = max(chainNumber, chain);
+					if (score > chainScore)
+					{
+						chainScore = score;
+						chainScoreTriggerRange = first;
+					}
+					if (chain > chainNumber)
+					{
+						chainNumber = chain;
+						chainNumberTriggerRange = first;
+					}
+					//chainScore = max(chainScore, score);
+					//chainNumber = max(chainNumber, chain);
 				}
 			}
 		}
