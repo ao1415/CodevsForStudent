@@ -6,11 +6,11 @@ class Evaluation {
 public:
 
 	Evaluation() = default;
-	Evaluation(const StageArray& stage, const int score, const int obstacle) {
+	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn) {
 
 		setTopBlock(stage);
 		evaluationBlockFlat(stage);
-		searchChain(stage, score, obstacle);
+		searchChain(stage, score, obstacle, turn);
 
 		totalScore += chainNumber * 1000 + chainScore;
 
@@ -77,7 +77,7 @@ private:
 		}
 	}
 
-	void searchChain(const StageArray& stage, const int score, const int obstacle) {
+	void searchChain(const StageArray& stage, const int score, const int obstacle, const int turn) {
 
 		const auto deleteCheck = [](const Point& pos, const StageArray& stage, const int n) {
 
@@ -100,43 +100,44 @@ private:
 			return false;
 		};
 
+		const auto find_blockTurn = [](const int num, const array<vector<int>, 10>& blockContainPacks, const int turn) {
+			for (const auto& val : blockContainPacks[num - 1])
+				if (val > turn)
+					return val;
+			return 1000;
+		};
+
 		Simulator simulator;
+
+		const auto blockContainPacks = Share::getBlockContainPacks();
+
+		const auto nearEval = [](const int range) {
+			const double x = (range - 1) / 3.3;
+			const double r = exp(-(x*x) / 2);
+			return r;
+		};
 
 		for (int n = 1; n < AddScore; n++)
 		{
+			int first = find_blockTurn(n, blockContainPacks, turn) - turn;
+
 			for (int x = 0; x < stage.getWidth(); x++)
 			{
-				//for (int dy = 0; dy < 3; dy++)
+				const Point point(x, blockTop[x]);
+
+				if (deleteCheck(point, stage, n))
 				{
-					//const Point point(x, blockTop[x] - dy);
-					const Point point(x, blockTop[x]);
+					auto next = stage;
 
-					if (deleteCheck(point, stage, n))
-					{
-						auto next = stage;
+					next[point] = n;
+					int score;
+					int chain = simulator.next(next, score);
 
-						//next[blockTop[x] - 0][x] = ObstacleBlock;
-						//next[blockTop[x] - 1][x] = ObstacleBlock;
-						//next[blockTop[x] - 2][x] = ObstacleBlock;
+					score = int(score*nearEval(first));
+					chain = int(chain*nearEval(first));
 
-						next[point] = n;
-						int score;
-						const int chain = simulator.next(next, score);
-						/*
-						if (score > chainScore || (score == chainScore && point.y < chainScoreTrigger))
-						{
-							chainScore = score;
-							chainScoreTrigger = point.y;
-						}
-						if (chain > chainNumber || (chain == chainNumber&& point.y < chainNumberTrigger))
-						{
-							chainNumber = chain;
-							chainNumberTrigger = point.y;
-						}
-						*/
-						chainScore = max(chainScore, score);
-						chainNumber = max(chainNumber, chain);
-					}
+					chainScore = max(chainScore, score);
+					chainNumber = max(chainNumber, chain);
 				}
 			}
 		}

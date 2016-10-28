@@ -38,7 +38,9 @@ public:
 	/// <summary>指定された数字がどのパックに含まれているかの配列を返す</summary>
 	inline static const vector<int>& getBlockContainPacks(const size_t n) { return blockContainPacks[n]; }
 
+	/// <summary>自分のステージの空白マスを返す</summary>
 	inline static const int getMyFreeSpace() { return myFreeSpace; }
+	/// <summary>敵のステージの空白マスを返す</summary>
 	inline static const int getEnFreeSpace() { return enFreeSpace; }
 
 	friend Input;

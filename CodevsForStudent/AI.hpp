@@ -119,7 +119,7 @@ private:
 
 							shotJudge(commands, data, score, myObstacle, enMaxScore, enObstacle);
 
-							data.evaluation = Evaluation(data.stage, score, myObstacle);
+							data.evaluation = Evaluation(data.stage, score, myObstacle, Share::getNow() + 1);
 
 							allCommands.emplace_back(data);
 						}
@@ -146,13 +146,13 @@ private:
 		{
 			if (mySendBlock >= 50)
 			{
-				data.evaluation = Evaluation(data.stage, 0, myObstacle);
+				data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
 				commands.push_back(data);
 				return;
 			}
 			else if (mySendBlock >= Share::getEnFreeSpace()*0.8)
 			{
-				data.evaluation = Evaluation(data.stage, 0, myObstacle);
+				data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
 				commands.push_back(data);
 				return;
 			}
@@ -161,7 +161,7 @@ private:
 		{
 			if (enSendBlock - mySendBlock >= 5)
 			{
-				data.evaluation = Evaluation(data.stage, 0, myObstacle);
+				data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
 				commands.push_back(data);
 				return;
 			}
@@ -233,7 +233,7 @@ private:
 									data.command = command;
 									data.stage = move(nextStage);
 									data.obstacle = obstacle - score2obstacle(score);
-									data.evaluation = Evaluation(data.stage, score, obstacle);
+									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1);
 
 									hashSet[t].insert(hash);
 
