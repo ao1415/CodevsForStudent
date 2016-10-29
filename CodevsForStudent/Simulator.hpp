@@ -141,6 +141,98 @@ public:
 
 	}
 
+	struct SimulationData {
+		int maxScore = 0;
+		int maxScoreTurn = 0;
+		int maxChain = 0;
+		int maxChainTurn = 0;
+	};
+
+	//欲しい情報
+	//最高連鎖数・ターン数
+	//最高スコア・ターン数
+
+	const SimulationData getSimulationData(const StageArray& stage, const int turn) {
+
+		SimulationData data;
+
+		const auto deleteCheck = [](const Point& pos, const StageArray& stage, const int n) {
+
+			const Point direction[] = { Point(-1,-1),Point(-1,1),Point(-1,0),Point(1,0),Point(1,-1),Point(0,-1),Point(1,-1) };
+			for (const auto& dire : direction)
+			{
+				int add = n;
+				Point p = pos;
+				while (add < AddScore)
+				{
+					p += dire;
+					if (inside(p) && stage[p] != EmptyBlock) add += stage[p];
+					else break;
+				}
+
+				if (add == AddScore)
+					return true;
+			}
+
+			return false;
+		};
+
+		const auto find_blockTurn = [](const int num, const array<vector<int>, 10>& blockContainPacks, const int turn) {
+			for (const auto& val : blockContainPacks[num - 1])
+				if (val > turn)
+					return val;
+			return 1000;
+		};
+
+		const auto blockContainPacks = Share::getBlockContainPacks();
+
+		array<int, StageWidth> blockTop;
+
+		for (int x = 0; x < stage.getWidth(); x++)
+		{
+			for (int y = stage.getHeight() - 1; y >= 0; y--)
+			{
+				if (stage[y][x] == EmptyBlock)
+				{
+					blockTop[x] = y;
+					break;
+				}
+			}
+		}
+
+		for (int n = 1; n < AddScore; n++)
+		{
+			int first = find_blockTurn(n, blockContainPacks, turn) - turn;
+
+			for (int x = 0; x < stage.getWidth(); x++)
+			{
+				const Point point(x, blockTop[x]);
+
+				if (deleteCheck(point, stage, n))
+				{
+					auto nextStage = stage;
+
+					nextStage[point] = n;
+					int score;
+					int chain = next(nextStage, score);
+
+					if (score > data.maxScore)
+					{
+						data.maxScore = score;
+						data.maxScoreTurn = first;
+					}
+					if (chain > data.maxChain)
+					{
+						data.maxChain = chain;
+						data.maxChainTurn = first;
+					}
+				}
+			}
+		}
+
+		return data;
+	}
+
 private:
 
 	const int disBlocks(StageArray& stage) const {

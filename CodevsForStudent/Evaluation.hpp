@@ -148,6 +148,8 @@ private:
 						chainNumberTriggerRange = first;
 					}
 					*/
+
+					//2‚Â‚®‚ç‚¢Œó•âo‚µ‚Ä‚İ‚éH
 					chainScore = max(chainScore, score);
 					chainNumber = max(chainNumber, chain);
 				}

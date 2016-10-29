@@ -45,9 +45,12 @@ private:
 		StageArray stage;
 		int obstacle;
 		Evaluation evaluation;
+		Evaluation firstEvaluation;
 
 		const bool operator<(const Data& d) const { return evaluation < d.evaluation; }
 	};
+
+	Data lastData;
 
 	const vector<Data> attackThink() {
 
@@ -61,6 +64,8 @@ private:
 		int enMaxScore = 0;
 		int enObstacle = Share::getEnObstacle();
 
+		const auto enemyData = simulator.getSimulationData(Share::getEnStage(), now);
+
 		//ã√éã
 		{
 			const auto& enStage = Share::getEnStage();
@@ -69,6 +74,7 @@ private:
 			const auto& enPackArr = enPack.getArray();
 			const auto& enSides = enPack.getSide();
 
+			//åªç›ÇÃÉ^Å[ÉìÇ≈ÇÃç≈çÇÉXÉRÉA
 			for (int r = 0; r < Rotation; r++)
 			{
 				const int packWidth = enSides[r].second - enSides[r].first + 1;
@@ -85,6 +91,7 @@ private:
 					enMaxScore = max(enMaxScore, score);
 				}
 			}
+
 		}
 
 		//çUåÇîªíf
@@ -97,6 +104,43 @@ private:
 			const auto& myPack = packs[now].getFullObstacle(myObstacle);
 			const auto& myPackArr = myPack.getArray();
 			const auto& mySides = myPack.getSide();
+
+			//çUåÇîªíËä÷êî
+			const auto shotJudge = [&](const Data& data, const int myScore) {
+
+				const int mySendBlock = score2obstacle(myScore) - myObstacle;
+				const int enSendBlock = score2obstacle(enMaxScore) - enObstacle;
+
+				if (enObstacle >= 20)
+				{
+					if (enSendBlock - mySendBlock >= 5)
+					{
+						return true;
+					}
+				}
+
+				if (enemyData.maxScoreTurn < 10)
+				{
+					if (score2obstacle(enemyData.maxScore) > mySendBlock - enemyData.maxScoreTurn * 6)
+					{
+						return false;
+					}
+				}
+
+				if (mySendBlock > enSendBlock)
+				{
+					//if (mySendBlock >= 50)
+					//{
+					//	return true;
+					//}
+					if (mySendBlock >= Share::getEnFreeSpace()*0.5)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			};
 
 			for (int r = 0; r < Rotation; r++)
 			{
@@ -125,9 +169,15 @@ private:
 
 							hashSet.insert(hash);
 
-							shotJudge(commands, data, score, myObstacle, enMaxScore, enObstacle);
+							if (shotJudge(data, score))
+							{
+								data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
+								data.firstEvaluation = data.evaluation;
+								commands.push_back(data);
+							}
 
 							data.evaluation = Evaluation(data.stage, score, myObstacle, Share::getNow() + 1);
+							data.firstEvaluation = data.evaluation;
 
 							allCommands.emplace_back(data);
 						}
@@ -143,38 +193,6 @@ private:
 		}
 
 		return allCommands;
-	}
-
-	void shotJudge(vector<Data>& commands, Data& data, const int myScore, const int myObstacle, const int enScore, const int enObstacle) const {
-
-		const int mySendBlock = score2obstacle(myScore) - myObstacle;
-		const int enSendBlock = score2obstacle(enScore) - enObstacle;
-
-		if (mySendBlock >= enSendBlock)
-		{
-			if (mySendBlock >= 50)
-			{
-				data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
-				commands.push_back(data);
-				return;
-			}
-			else if (mySendBlock >= Share::getEnFreeSpace()*0.8)
-			{
-				data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
-				commands.push_back(data);
-				return;
-			}
-		}
-		else if (enObstacle >= 30)
-		{
-			if (enSendBlock - mySendBlock >= 5)
-			{
-				data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
-				commands.push_back(data);
-				return;
-			}
-		}
-
 	}
 
 	const Command chainThink(const vector<Data>& commands) {
@@ -212,6 +230,7 @@ private:
 					qData[t].pop();
 
 					const auto& command = topData.command;
+					const auto& firstEvaluation = topData.firstEvaluation;
 					const auto& stage = topData.stage;
 					int obstacle = topData.obstacle;
 					const auto& pack = packs[turn].getFullObstacle(obstacle);
@@ -243,6 +262,7 @@ private:
 									data.stage = move(nextStage);
 									data.obstacle = obstacle - score2obstacle(score);
 									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1);
+									data.firstEvaluation = firstEvaluation;
 
 									hashSet[t].insert(hash);
 
@@ -259,9 +279,13 @@ private:
 		if (!qData[Turn].empty())
 		{
 			const auto& top = qData[Turn].top();
-			top.evaluation.show();
+			lastData = top;
+			//top.evaluation.show();
+			top.firstEvaluation.show();
 			return top.command;
 		}
+
+		lastData = Data();
 
 		cerr << "ãlÇ›Ç≈Ç∑" << endl;
 		return Command();
