@@ -91,6 +91,7 @@ private:
 					simulator.next(nextStage, score);
 					enMaxScore = max(enMaxScore, score);
 
+					/*
 					int space = 0;
 					for (int x = 0; x < nextStage.getWidth(); x++)
 					{
@@ -102,6 +103,7 @@ private:
 						}
 					}
 					enMaxSpace = max(enMaxSpace, space);
+					*/
 				}
 			}
 

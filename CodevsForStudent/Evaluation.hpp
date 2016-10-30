@@ -12,10 +12,11 @@ public:
 		evaluationBlockFlat(stage);
 		searchChain(stage, score, obstacle, turn);
 
-		totalScore += chainNumber * 1000 + chainScore;
+		totalScore += chainNumber[0] * 100 + chainScore[0];
+		totalScore += chainNumber[1] * 10 + chainScore[1]/10;
 
 		totalScore -= blockFlatScore * 1000;
-		
+
 		//totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
 		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
 
@@ -24,17 +25,17 @@ public:
 	const bool operator<(const Evaluation& e) const { return totalScore < e.totalScore; }
 
 	void show() const {
-		cerr << "連鎖:" << chainNumber << ",スコア:" << chainScore << endl;
+		cerr << "連鎖:" << chainNumber[0] << ",スコア:" << chainScore[0] << endl;
 	}
 
 private:
 
 	array<int, StageWidth> blockTop;
 
-	int chainNumber = 0;
+	array<int, 2> chainNumber = {};
 	int chainNumberTrigger = StageHeight;
 	int chainNumberTriggerRange = INT32_MAX;
-	int chainScore = 0;
+	array<int, 2> chainScore = {};
 	int chainScoreTrigger = StageHeight;
 	int chainScoreTriggerRange = INT32_MAX;
 
@@ -62,7 +63,7 @@ private:
 
 	void evaluationBlockFlat(const StageArray& stage) {
 
-		const int sub = 6;
+		const int sub = 8;
 
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
@@ -121,6 +122,9 @@ private:
 
 		//const auto blockContainPacks = Share::getBlockContainPacks();
 
+		//一度発火させて、発火後の形をもう一度評価してみる？
+		//発火ブロックがお邪魔で埋まっても発火できるかみてみる？
+
 		for (int n = 1; n < AddScore; n++)
 		{
 			//int first = find_blockTurn(n, blockContainPacks, turn) - turn;
@@ -136,22 +140,31 @@ private:
 					next[point] = n;
 					int score;
 					int chain = simulator.next(next, score);
-					/*
-					if (score > chainScore)
+					//*
+					if (score > chainScore[0])
 					{
-						chainScore = score;
-						chainScoreTriggerRange = first;
+						chainScore[1] = chainScore[0];
+						chainScore[0] = score;
 					}
-					if (chain > chainNumber)
+					else if (score > chainScore[1])
 					{
-						chainNumber = chain;
-						chainNumberTriggerRange = first;
+						chainScore[1] = score;
 					}
-					*/
+					if (chain > chainNumber[0])
+					{
+						chainNumber[1] = chainNumber[0];
+						chainNumber[0] = chain;
+					}
+					else if (chain > chainNumber[1])
+					{
+						chainNumber[1] = chain;
+					}
+					/*/
 
 					//2つぐらい候補出してみる？
 					chainScore = max(chainScore, score);
 					chainNumber = max(chainNumber, chain);
+					*/
 				}
 			}
 		}
