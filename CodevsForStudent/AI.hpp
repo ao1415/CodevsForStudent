@@ -228,7 +228,10 @@ private:
 		//qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
 		for (const auto& com : commands) { qData[0].push(com); }
 
-		Timer timer(1000ms);
+		//gcc‚ÅƒRƒ“ƒpƒCƒ‹‚Å‚«‚È‚©‚Á‚½
+		//Timer timer(1000ms);
+
+		Timer timer(chrono::milliseconds(1000));
 		timer.start();
 
 		while (!timer)
