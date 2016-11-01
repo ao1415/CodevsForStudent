@@ -13,7 +13,7 @@ public:
 		searchChain(stage, score, obstacle, turn);
 
 		totalScore += chainNumber[0] * 100 + chainScore[0];
-		totalScore += chainNumber[1] * 10 + chainScore[1]/10;
+		totalScore += chainNumber[1] * 10 + chainScore[1] / 10;
 
 		totalScore -= blockFlatScore * 1000;
 
@@ -113,21 +113,21 @@ private:
 		};
 
 		const auto nearEval = [](const int range) {
-			const double x = (range - 1) / 3.3;
-			const double r = exp(-(x*x) / 2);
+			const double e = exp(range - 10);
+			const double r = 1 / (1 + e);
 			return r;
 		};
 
 		Simulator simulator;
 
-		//const auto blockContainPacks = Share::getBlockContainPacks();
+		const auto blockContainPacks = Share::getBlockContainPacks();
 
 		//一度発火させて、発火後の形をもう一度評価してみる？
 		//発火ブロックがお邪魔で埋まっても発火できるかみてみる？
 
 		for (int n = 1; n < AddScore; n++)
 		{
-			//int first = find_blockTurn(n, blockContainPacks, turn) - turn;
+			int first = find_blockTurn(n, blockContainPacks, turn) - turn;
 
 			for (int x = 0; x < stage.getWidth(); x++)
 			{
@@ -140,6 +140,10 @@ private:
 					next[point] = n;
 					int score;
 					int chain = simulator.next(next, score);
+					const double e = nearEval(first);
+					score = int(e*score);
+					chain = int(e*chain);
+
 					//*
 					if (score > chainScore[0])
 					{
