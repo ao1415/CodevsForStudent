@@ -127,9 +127,9 @@ private:
 				const int mySendBlock = score2obstacle(myScore) - myObstacle;
 				const int enSendBlock = score2obstacle(enMaxScore) - enObstacle;
 
-				if (enObstacle >= 20)
+				if (myObstacle >= 20)
 				{
-					if (enSendBlock - mySendBlock >= 10)
+					if (enSendBlock - mySendBlock >= 5)
 					{
 						return true;
 					}
@@ -142,7 +142,7 @@ private:
 						return false;
 					}
 				}
-
+				//‚±‚ê‚ð“¦‚µ‚½‚çŽ€–S‚·‚é‚È‚ç‚Î”­‰Î‚É•ÏX‚·‚é
 				if (mySendBlock > enSendBlock)
 				{
 					//if (mySendBlock >= 50)
