@@ -109,6 +109,7 @@ private:
 
 		}
 
+		//‰½‚Æ‚©‚µ‚Ä‰ü—Ç‚µ‚½‚¢
 		//UŒ‚”»’f
 		{
 			const auto& myStage = Share::getMyStage();

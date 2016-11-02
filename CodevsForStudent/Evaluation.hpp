@@ -105,6 +105,38 @@ private:
 			return false;
 		};
 
+		const auto trggerCheck = [](const StageArray& stage, const Pack& pack, const Point& triggerPoint, const int triggerNumber) {
+			int obstacle = 10;
+			const auto obPack = pack.getFullObstacle(obstacle);
+
+			for (int r = 0; r < Rotation; r++)
+			{
+				const auto arr = obPack.getArray(r);
+
+				for (int x = 0; x < PackSize; x++)
+				{
+					bool obsFlag = false;
+					for (int y = PackSize - 1; y >= 0; y--)
+					{
+						if (arr[y][x] == ObstacleBlock)
+							obsFlag = true;
+						if (arr[y][x] == triggerNumber)
+						{
+							if (!obsFlag)
+							{
+								if (0 <= triggerPoint.x - x && triggerPoint.x + (PackSize - x - 1) < StageWidth)
+								{
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return false;
+		};
+
 		const auto find_blockTurn = [](const int num, const array<vector<int>, 10>& blockContainPacks, const int turn) {
 			for (const auto& val : blockContainPacks[num - 1])
 				if (val > turn)
@@ -120,6 +152,7 @@ private:
 
 		Simulator simulator;
 
+		const auto packs = Share::getPacks();
 		const auto blockContainPacks = Share::getBlockContainPacks();
 
 		//一度発火させて、発火後の形をもう一度評価してみる？
@@ -128,51 +161,54 @@ private:
 		for (int n = 1; n < AddScore; n++)
 		{
 			int first = find_blockTurn(n, blockContainPacks, turn) - turn;
+			const double e = nearEval(first);
 
 			for (int x = 0; x < stage.getWidth(); x++)
 			{
 				const Point point(x, blockTop[x]);
 
-				if (deleteCheck(point, stage, n))
+				if (first + turn < Share::getTurn() && trggerCheck(stage, packs[first + turn], point, n))
 				{
-					auto next = stage;
+					if (deleteCheck(point, stage, n))
+					{
+						auto next = stage;
 
-					next[point] = n;
-					int score;
-					int chain = simulator.next(next, score);
-					const double e = nearEval(first);
-					score = int(e*score);
-					chain = int(e*chain);
+						next[point] = n;
+						int score;
+						int chain = simulator.next(next, score);
 
-					//*
-					if (score > chainScore[0])
-					{
-						chainScore[1] = chainScore[0];
-						chainScore[0] = score;
-					}
-					else if (score > chainScore[1])
-					{
-						chainScore[1] = score;
-					}
-					if (chain > chainNumber[0])
-					{
-						chainNumber[1] = chainNumber[0];
-						chainNumber[0] = chain;
-					}
-					else if (chain > chainNumber[1])
-					{
-						chainNumber[1] = chain;
-					}
-					/*/
+						score = int(e*score);
+						chain = int(e*chain);
 
-					//2つぐらい候補出してみる？
-					chainScore = max(chainScore, score);
-					chainNumber = max(chainNumber, chain);
-					*/
+						//*
+						if (score > chainScore[0])
+						{
+							chainScore[1] = chainScore[0];
+							chainScore[0] = score;
+						}
+						else if (score > chainScore[1])
+						{
+							chainScore[1] = score;
+						}
+						if (chain > chainNumber[0])
+						{
+							chainNumber[1] = chainNumber[0];
+							chainNumber[0] = chain;
+						}
+						else if (chain > chainNumber[1])
+						{
+							chainNumber[1] = chain;
+						}
+						/*/
+
+						//2つぐらい候補出してみる？
+						chainScore = max(chainScore, score);
+						chainNumber = max(chainNumber, chain);
+						*/
+					}
 				}
 			}
 		}
-
 	}
 
 };
