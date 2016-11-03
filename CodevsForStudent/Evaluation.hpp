@@ -33,12 +33,7 @@ private:
 	array<int, StageWidth> blockTop;
 
 	array<int, 2> chainNumber = {};
-	int chainNumberTrigger = StageHeight;
-	int chainNumberTriggerRange = INT32_MAX;
 	array<int, 2> chainScore = {};
-	int chainScoreTrigger = StageHeight;
-	int chainScoreTriggerRange = INT32_MAX;
-
 	int blockFlatScore = 0;
 
 	int tchain = 0;
@@ -183,7 +178,6 @@ private:
 						const int escore = int(e*score);
 						const int echain = int(e*chain);
 
-						//*
 						if (escore > chainScore[0])
 						{
 							tscore = score;
@@ -204,12 +198,6 @@ private:
 						{
 							chainNumber[1] = echain;
 						}
-						/*/
-
-						//2‚Â‚®‚ç‚¢Œó•âo‚µ‚Ä‚İ‚éH
-						chainScore = max(chainScore, score);
-						chainNumber = max(chainNumber, chain);
-						*/
 					}
 				}
 			}

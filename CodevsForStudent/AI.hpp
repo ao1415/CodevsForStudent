@@ -91,19 +91,6 @@ private:
 					simulator.next(nextStage, score);
 					enMaxScore = max(enMaxScore, score);
 
-					/*
-					int space = 0;
-					for (int x = 0; x < nextStage.getWidth(); x++)
-					{
-						for (int y = nextStage.getHeight() - 1; y >= 0; y++)
-						{
-							if (nextStage[y][x] == EmptyBlock)
-								break;
-							space++;
-						}
-					}
-					enMaxSpace = max(enMaxSpace, space);
-					*/
 				}
 			}
 
@@ -145,11 +132,6 @@ private:
 				//‚±‚ê‚ð“¦‚µ‚½‚çŽ€–S‚·‚é‚È‚ç‚Î”­‰Î‚É•ÏX‚·‚é
 				if (mySendBlock > enSendBlock)
 				{
-					//if (mySendBlock >= 50)
-					//{
-					//	return true;
-					//}
-					//if (mySendBlock >= enMaxSpace * 0.3)
 					if (mySendBlock >= Share::getEnFreeSpace() * 0.5)
 					{
 						return true;
