@@ -12,8 +12,7 @@ public:
 		evaluationBlockFlat(stage);
 		searchChain(stage, score, obstacle, turn);
 
-		totalScore += chainNumber[0] * 100 + chainScore[0];
-		totalScore += chainNumber[1] * 10 + chainScore[1] / 10;
+		totalScore += chainNumber * 100 + chainScore + chainEval;
 
 		totalScore -= blockFlatScore * 1000;
 
@@ -26,14 +25,16 @@ public:
 
 	void show() const {
 		cerr << "連鎖:" << tchain << ",スコア:" << tscore << endl;
+		//cerr << "形状スコア:" << chainEval << endl;
 	}
 
 private:
 
 	array<int, StageWidth> blockTop;
 
-	array<int, 2> chainNumber = {};
-	array<int, 2> chainScore = {};
+	int chainNumber = 0;
+	int chainScore = 0;
+	int chainEval = 0;
 	int blockFlatScore = 0;
 
 	int tchain = 0;
@@ -170,33 +171,31 @@ private:
 						auto next = stage;
 
 						next[point] = n;
-						int score;
-						int chain = simulator.next(next, score);
+						/*
+						const auto data = simulator.chainEval(next);
+						const int score = get<0>(data);
+						const int chain = get<1>(data);
+						const int eval = get<2>(data);
+						/*/
+						const auto data = simulator.next(next);
+						int score = get<0>(data);
+						int chain = get<1>(data);
+						//*/
 
 						const double e = nearEval(first);
 
 						const int escore = int(e*score);
 						const int echain = int(e*chain);
 
-						if (escore > chainScore[0])
+						if (escore > chainScore)
 						{
 							tscore = score;
-							chainScore[1] = chainScore[0];
-							chainScore[0] = escore;
+							chainScore = escore;
 						}
-						else if (escore > chainScore[1])
-						{
-							chainScore[1] = escore;
-						}
-						if (echain > chainNumber[0])
+						if (echain > chainNumber)
 						{
 							tchain = chain;
-							chainNumber[1] = chainNumber[0];
-							chainNumber[0] = echain;
-						}
-						else if (echain > chainNumber[1])
-						{
-							chainNumber[1] = echain;
+							chainNumber = echain;
 						}
 					}
 				}

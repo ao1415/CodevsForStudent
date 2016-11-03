@@ -98,6 +98,24 @@ public:
 		return chain;
 	}
 
+	const tuple<int, int> next(StageArray& stage) const {
+
+		int score = 0;
+
+		int chain = 1;
+		int count = 0;
+
+		//fall(stage);
+		while ((count = disBlocks(stage)) > 0)
+		{
+			score += (int)pow(1.3, chain)*(int)(count / 2);
+			chain++;
+			fall(stage);
+		}
+
+		return tuple<int, int>(score, chain);
+	}
+
 	//ゲームオーバーならばtrue
 	bool isDead(const StageArray& stage) const {
 
@@ -233,6 +251,42 @@ public:
 		return data;
 	}
 
+	/*
+	//連鎖スコア、連鎖数、形の良さ
+	const tuple<int, int, int> chainEval(StageArray& stage) const {
+
+		//斜めで発火していること
+		//発火点の高さが保たれていること
+		//発火数が少ないこと
+
+		int score = 0;
+		int chain = 1;
+		int eval = 0;
+
+		//fall(stage);
+		while (true)
+		{
+			const auto d = disBlocksEval(stage);
+			int count = get<0>(d);
+			if (count <= 0) break;
+
+			score += (int)pow(1.3, chain)*(int)(count / 2);
+			chain++;
+			eval += get<1>(d);
+
+			fall(stage);
+		}
+
+		tuple<int, int, int> data;
+
+		get<0>(data) = score;
+		get<1>(data) = chain;
+		get<2>(data) = eval;
+
+		return data;
+	}
+	*/
+
 private:
 
 	const int disBlocks(StageArray& stage) const {
@@ -288,4 +342,67 @@ private:
 		return count;
 	}
 
+	/*
+	const tuple<int, int> disBlocksEval(StageArray& stage) const {
+
+		StageArray next = stage;
+
+		int count = 0;
+
+		int slope = 0;
+
+		//上, 右上, 右, 右下
+		const Point direction[] = { Point(0,-1),Point(1,-1),Point(1,0),Point(1,1) };
+
+		for (int x = 0; x < stage.getWidth(); x++)
+		{
+			for (int y = stage.getHeight() - 1; y >= 0 && stage[y][x] != EmptyBlock; y--)
+			{
+				//if (stage[y][x] == 0) continue;
+
+				//方向
+				for (const auto& dire : direction)
+				{
+					int add = stage[y][x];
+					Point p = Point(x, y);
+
+					//探査
+					for (int i = 1; i < StageHeight; i++)
+					{
+						p += dire;
+
+						if (!inside(p) || stage[p] == EmptyBlock) break;
+
+						add += stage[p];
+
+						//10になった
+						if (add == AddScore)
+						{
+							for (int j = i; j >= 0; j--)
+							{
+								next[p] = EmptyBlock;
+								count++;
+								p -= dire;
+							}
+							if (p.x*p.y != 0) slope++;
+
+							break;
+						}
+						else if (add > AddScore)
+							break;
+					}
+				}
+			}
+		}
+
+		stage = move(next);
+
+		tuple<int, int> data;
+
+		get<0>(data) = count;
+		get<1>(data) = slope * 5 - count;
+
+		return data;
+	}
+	*/
 };
