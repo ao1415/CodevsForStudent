@@ -102,7 +102,7 @@ private:
 			const auto& myStage = Share::getMyStage();
 			int myObstacle = Share::getMyObstacle();
 
-			set<Hash::Type> hashSet;
+			set<pair<int, Hash::Type>> hashSet;
 
 			const auto& myPack = packs[now].getFullObstacle(myObstacle);
 			const auto& myPackArr = myPack.getArray();
@@ -157,7 +157,8 @@ private:
 
 					if (!simulator.isDead(nextStage))
 					{
-						const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+						const auto stageHash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+						const pair<int, Hash::Type> hash = { score,stageHash };
 
 						if (hashSet.find(hash) == hashSet.end())
 						{
@@ -205,7 +206,7 @@ private:
 
 		Simulator simulator;
 		array<priority_queue<Data>, Turn + 1> qData;
-		array<set<Hash::Type>, Turn> hashSet;
+		array<set<pair<int, Hash::Type>>, Turn> hashSet;
 
 		//gcc‚ÅƒRƒ“ƒpƒCƒ‹‚Å‚«‚È‚©‚Á‚½
 		//qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
@@ -255,7 +256,8 @@ private:
 
 							if (!simulator.isDead(nextStage))
 							{
-								const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+								const auto stageHash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+								const pair<int, Hash::Type> hash = { score,stageHash };
 
 								if (hashSet[t].find(hash) == hashSet[t].end())
 								{

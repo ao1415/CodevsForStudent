@@ -23,16 +23,16 @@ public:
 	Grid& operator=(const Grid& other) = default;
 	Grid& operator=(Grid&& other) = default;
 
-	bool isBounds(size_t y, size_t x) const noexcept {
+	bool inBounds(size_t y, size_t x) const noexcept {
 		return (0 <= y && y < height && 0 <= x && x < width);
 	}
 
 	Type& at(size_t y, size_t x) {
-		if (!isBounds(y, x)) throw std::out_of_range("Grid::at");
+		if (!inBounds(y, x)) throw std::out_of_range("Grid::at");
 		return data[y*width + x];
 	}
 	const Type& at(size_t y, size_t x) const {
-		if (!isBounds(y, x)) throw std::out_of_range("Grid::at");
+		if (!inBounds(y, x)) throw std::out_of_range("Grid::at");
 		return data[y*width + x];
 	}
 	Type& at(const Point& pos) { return at(pos.y, pos.x); }

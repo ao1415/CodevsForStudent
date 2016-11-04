@@ -24,7 +24,7 @@ public:
 	const bool operator<(const Evaluation& e) const { return totalScore < e.totalScore; }
 
 	void show() const {
-		cerr << "連鎖:" << tchain << ",スコア:" << tscore << endl;
+		cerr << "連鎖:" << tChain << ",スコア:" << tScore << endl;
 		//cerr << "形状スコア:" << chainEval << endl;
 	}
 
@@ -37,8 +37,8 @@ private:
 	int chainEval = 0;
 	int blockFlatScore = 0;
 
-	int tchain = 0;
-	int tscore = 0;
+	int tChain = 0;
+	int tScore = 0;
 	int totalScore = 0;
 
 	void setTopBlock(const StageArray& stage) {
@@ -160,6 +160,8 @@ private:
 		{
 			int first = find_blockTurn(n, blockContainPacks, turn) - turn;
 
+			const double e = nearEval(first);
+
 			for (int x = 0; x < stage.getWidth(); x++)
 			{
 				const Point point(x, blockTop[x]);
@@ -171,31 +173,23 @@ private:
 						auto next = stage;
 
 						next[point] = n;
-						/*
-						const auto data = simulator.chainEval(next);
-						const int score = get<0>(data);
-						const int chain = get<1>(data);
-						const int eval = get<2>(data);
-						/*/
+
 						const auto data = simulator.next(next);
 						int score = get<0>(data);
 						int chain = get<1>(data);
-						//*/
+						
+						const int eScore = int(e*score);
+						const int eChain = int(e*chain);
 
-						const double e = nearEval(first);
-
-						const int escore = int(e*score);
-						const int echain = int(e*chain);
-
-						if (escore > chainScore)
+						if (eScore > chainScore)
 						{
-							tscore = score;
-							chainScore = escore;
+							tScore = score;
+							chainScore = eScore;
 						}
-						if (echain > chainNumber)
+						if (eChain > chainNumber)
 						{
-							tchain = chain;
-							chainNumber = echain;
+							tChain = chain;
+							chainNumber = eChain;
 						}
 					}
 				}
