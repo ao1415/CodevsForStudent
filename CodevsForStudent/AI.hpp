@@ -63,7 +63,6 @@ private:
 
 		int enMaxScore = 0;
 		int enObstacle = Share::getEnObstacle();
-		int enMaxSpace = 0;
 
 		const auto enemyData = simulator.getSimulationData(Share::getEnStage(), now);
 
@@ -85,7 +84,7 @@ private:
 				for (int pos = left; pos < right; pos++)
 				{
 					auto nextStage = simulator.csetBlocks(enStage, enPackArr[r], pos);
-					simulator.fall(nextStage);
+					//simulator.fall(nextStage);
 
 					int score;
 					simulator.next(nextStage, score);
@@ -150,7 +149,7 @@ private:
 				for (int pos = left; pos < right; pos++)
 				{
 					auto nextStage = simulator.csetBlocks(myStage, myPackArr[r], pos);
-					simulator.fall(nextStage);
+					//simulator.fall(nextStage);
 
 					int score;
 					simulator.next(nextStage, score);
@@ -249,7 +248,7 @@ private:
 						for (int pos = left; pos < right; pos++)
 						{
 							auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
-							simulator.fall(nextStage);
+							//simulator.fall(nextStage);
 
 							int score;
 							simulator.next(nextStage, score);

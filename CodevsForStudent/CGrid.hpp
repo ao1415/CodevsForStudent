@@ -67,7 +67,7 @@ public:
 			for (int x = 0; x < _Width; x++)
 			{
 				if (m_data[y*_Width + x] != 0)
-					cerr << setw(2) << setfill(' ') << m_data[y*_Width + x] << ",";
+					cerr << setw(2) << setfill(' ') << (int)m_data[y*_Width + x] << ",";
 				else
 					cerr << "  ,";
 			}
