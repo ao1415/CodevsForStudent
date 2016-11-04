@@ -52,7 +52,7 @@ private:
 
 	Data lastData;
 
-	const priority_queue<Data> enemyThink() {
+	const priority_queue<Data> enemyThink(int obstacle) {
 
 		const auto& packs = Share::getPacks();
 		const int now = Share::getNow();
@@ -67,7 +67,6 @@ private:
 
 		{
 			const auto& stage = Share::getMyStage();
-			int obstacle = Share::getEnObstacle();
 
 			set<pair<int, Hash::Type>> hashSet;
 
@@ -177,6 +176,36 @@ private:
 		return qData[Turn];
 	}
 
+	const int getMaxScore(const StageArray& stage, const Pack& pack) const {
+
+		Simulator simulator;
+
+		const auto& packArr = pack.getArray();
+		const auto& sides = pack.getSide();
+
+		int maxScore = 0;
+
+		//現在のターンでの最高スコア
+		for (int r = 0; r < Rotation; r++)
+		{
+			const int packWidth = sides[r].second - sides[r].first + 1;
+			const int left = 0 - sides[r].first;
+			const int right = StageWidth - packWidth + 1 - sides[r].first;
+
+			for (int pos = left; pos < right; pos++)
+			{
+				auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
+
+				int score;
+				simulator.next(nextStage, score);
+				maxScore = max(maxScore, score);
+
+			}
+		}
+
+		return maxScore;
+	}
+
 	const vector<Data> attackThink() {
 
 		vector<Data> commands;
@@ -186,46 +215,18 @@ private:
 		const auto& packs = Share::getPacks();
 		const int now = Share::getNow();
 
-		int enMaxScore = 0;
 		int enObstacle = Share::getEnObstacle();
+		int enMaxScore = getMaxScore(Share::getEnStage(), packs[now].getFullObstacle(enObstacle));
 
 		const auto enemyData = simulator.getSimulationData(Share::getEnStage(), now);
 
-		//凝視
-		{
-			const auto& enStage = Share::getEnStage();
-
-			const auto& enPack = packs[now].getFullObstacle(enObstacle);
-			const auto& enPackArr = enPack.getArray();
-			const auto& enSides = enPack.getSide();
-
-			//現在のターンでの最高スコア
-			for (int r = 0; r < Rotation; r++)
-			{
-				const int packWidth = enSides[r].second - enSides[r].first + 1;
-				const int left = 0 - enSides[r].first;
-				const int right = StageWidth - packWidth + 1 - enSides[r].first;
-
-				for (int pos = left; pos < right; pos++)
-				{
-					auto nextStage = simulator.csetBlocks(enStage, enPackArr[r], pos);
-					//simulator.fall(nextStage);
-
-					int score;
-					simulator.next(nextStage, score);
-					enMaxScore = max(enMaxScore, score);
-
-				}
-			}
-
-		}
-
 		//何とかして改良したい
 		//攻撃判断
-		{
-			const auto& myStage = Share::getMyStage();
-			int myObstacle = Share::getMyObstacle();
+		const auto& myStage = Share::getMyStage();
+		int myObstacle = Share::getMyObstacle();
+		int myMaxScore = getMaxScore(Share::getMyStage(), packs[now].getFullObstacle(myObstacle));
 
+		{
 			set<pair<int, Hash::Type>> hashSet;
 
 			const auto& myPack = packs[now].getFullObstacle(myObstacle);
@@ -312,8 +313,21 @@ private:
 
 		if (!commands.empty())
 		{
-			cerr << "！発火！" << endl;
-			return commands;
+			bool attackFlag = true;
+			const auto& enQueue = enemyThink(score2obstacle(myMaxScore) - myObstacle);
+
+			if (!enQueue.empty())
+			{
+				const auto data = enQueue.top();
+				if (score2obstacle(data.evaluation.getScore()) >= 20)
+					attackFlag = false;
+			}
+
+			if (attackFlag)
+			{
+				cerr << "！発火！" << endl;
+				return commands;
+			}
 		}
 
 		return allCommands;

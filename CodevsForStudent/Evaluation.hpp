@@ -28,6 +28,8 @@ public:
 		//cerr << "形状スコア:" << chainEval << endl;
 	}
 
+	const int getScore() const { return tScore; }
+
 private:
 
 	array<int, StageWidth> blockTop;
@@ -60,7 +62,7 @@ private:
 
 	void evaluationBlockFlat(const StageArray& stage) {
 
-		const int sub = 4;
+		const int sub = 8;
 
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
@@ -142,7 +144,7 @@ private:
 		};
 
 		const auto nearEval = [](const int range) {
-			const double e = exp(range - 8);
+			const double e = exp(range - 10);
 			const double r = 1 / (1 + e);
 			return r;
 		};
