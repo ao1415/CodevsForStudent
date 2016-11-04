@@ -46,6 +46,7 @@ private:
 		int obstacle;
 		Evaluation evaluation;
 		Evaluation firstEvaluation;
+		int score;
 
 		const bool operator<(const Data& d) const { return evaluation < d.evaluation; }
 	};
@@ -103,6 +104,8 @@ private:
 							data.evaluation = Evaluation(data.stage, score, obstacle, Share::getNow() + 1);
 							data.firstEvaluation = data.evaluation;
 
+							data.score = score;
+
 							qData[0].emplace(data);
 						}
 					}
@@ -143,7 +146,6 @@ private:
 						for (int pos = left; pos < right; pos++)
 						{
 							auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
-							//simulator.fall(nextStage);
 
 							int score;
 							simulator.next(nextStage, score);
@@ -160,6 +162,8 @@ private:
 									data.obstacle = obstacle - score2obstacle(score);
 									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1);
 									data.firstEvaluation = firstEvaluation;
+
+									data.score += score;
 
 									hashSet[t].insert(hash);
 
@@ -319,7 +323,7 @@ private:
 			if (!enQueue.empty())
 			{
 				const auto data = enQueue.top();
-				if (score2obstacle(data.evaluation.getScore()) >= 20)
+				if (score2obstacle(data.score) - (score2obstacle(myMaxScore) - myObstacle) >= -10)
 					attackFlag = false;
 			}
 

@@ -9,12 +9,12 @@ public:
 	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn) {
 
 		setTopBlock(stage);
-		evaluationBlockFlat(stage);
+		//evaluationBlockFlat(stage);
 		searchChain(stage, score, obstacle, turn);
 
 		totalScore += chainNumber * 100 + chainScore;
 
-		totalScore -= blockFlatScore * 200;
+		//totalScore -= blockFlatScore * 200;
 
 		//totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
 		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
@@ -62,7 +62,7 @@ private:
 
 	void evaluationBlockFlat(const StageArray& stage) {
 
-		const int sub = 8;
+		const int sub = 4;
 
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
