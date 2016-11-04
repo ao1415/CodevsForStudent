@@ -12,9 +12,9 @@ public:
 		evaluationBlockFlat(stage);
 		searchChain(stage, score, obstacle, turn);
 
-		totalScore += chainNumber * 100 + chainScore + chainEval;
+		totalScore += chainNumber * 100 + chainScore;
 
-		totalScore -= blockFlatScore * 1000;
+		totalScore -= blockFlatScore * 200;
 
 		//totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
 		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
@@ -34,7 +34,6 @@ private:
 
 	int chainNumber = 0;
 	int chainScore = 0;
-	int chainEval = 0;
 	int blockFlatScore = 0;
 
 	int tChain = 0;
@@ -61,7 +60,7 @@ private:
 
 	void evaluationBlockFlat(const StageArray& stage) {
 
-		const int sub = 8;
+		const int sub = 4;
 
 		for (int x = 0; x < (int)blockTop.size(); x++)
 		{
@@ -71,11 +70,11 @@ private:
 			const int lsub = blockTop[x] - l;
 			const int rsub = blockTop[x] - r;
 
-			if (lsub >= sub && rsub >= sub)
-				blockFlatScore += max(lsub, rsub) - sub + 1;
+			if (lsub > sub && rsub > sub)
+				blockFlatScore += max(lsub, rsub) - sub;
 
-			if (lsub <= -sub && rsub <= -sub)
-				blockFlatScore += -min(lsub, rsub) - sub + 1;
+			if (lsub < -sub && rsub < -sub)
+				blockFlatScore += -min(lsub, rsub) - sub;
 
 		}
 	}
@@ -143,7 +142,7 @@ private:
 		};
 
 		const auto nearEval = [](const int range) {
-			const double e = exp(range - 10);
+			const double e = exp(range - 8);
 			const double r = 1 / (1 + e);
 			return r;
 		};

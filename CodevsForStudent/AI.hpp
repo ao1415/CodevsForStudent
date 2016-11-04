@@ -52,6 +52,131 @@ private:
 
 	Data lastData;
 
+	const priority_queue<Data> enemyThink() {
+
+		const auto& packs = Share::getPacks();
+		const int now = Share::getNow();
+		const int maxTurn = Share::getTurn();
+
+		const int Turn = 10;
+		const int ChokudaiWidth = 1;
+
+		Simulator simulator;
+		array<priority_queue<Data>, Turn + 1> qData;
+		array<set<pair<int, Hash::Type>>, Turn> hashSet;
+
+		{
+			const auto& stage = Share::getMyStage();
+			int obstacle = Share::getEnObstacle();
+
+			set<pair<int, Hash::Type>> hashSet;
+
+			const auto& pack = packs[now].getFullObstacle(obstacle);
+			const auto& packArr = pack.getArray();
+			const auto& sides = pack.getSide();
+			for (int r = 0; r < Rotation; r++)
+			{
+				const int packWidth = sides[r].second - sides[r].first + 1;
+				const int left = 0 - sides[r].first;
+				const int right = StageWidth - packWidth + 1 - sides[r].first;
+
+				for (int pos = left; pos < right; pos++)
+				{
+					auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
+
+					int score;
+					simulator.next(nextStage, score);
+
+					if (!simulator.isDead(nextStage))
+					{
+						const auto stageHash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+						const pair<int, Hash::Type> hash = { score,stageHash };
+
+						if (hashSet.find(hash) == hashSet.end())
+						{
+							Data data;
+							data.command = Command(pos, r);
+							data.stage = move(nextStage);
+							data.obstacle = obstacle - score2obstacle(score);
+
+							hashSet.insert(hash);
+
+							data.evaluation = Evaluation(data.stage, score, obstacle, Share::getNow() + 1);
+							data.firstEvaluation = data.evaluation;
+
+							qData[0].emplace(data);
+						}
+					}
+				}
+			}
+		}
+
+		Timer timer(chrono::milliseconds(1000));
+		timer.start();
+
+		while (!timer)
+		{
+			for (int t = 0; t < Turn; t++)
+			{
+				const int turn = now + t + 1;
+				if (turn >= maxTurn) break;
+
+				for (int i = 0; i < ChokudaiWidth; i++)
+				{
+					if (qData[t].empty()) break;
+
+					const auto topData = qData[t].top();
+					qData[t].pop();
+
+					const auto& firstEvaluation = topData.firstEvaluation;
+					const auto& stage = topData.stage;
+					int obstacle = topData.obstacle;
+					const auto& pack = packs[turn].getFullObstacle(obstacle);
+					const auto& packArr = pack.getArray();
+					const auto& sides = pack.getSide();
+
+					for (int r = 0; r < Rotation; r++)
+					{
+						const int packWidth = sides[r].second - sides[r].first + 1;
+						const int left = 0 - sides[r].first;
+						const int right = StageWidth - packWidth + 1 - sides[r].first;
+
+						for (int pos = left; pos < right; pos++)
+						{
+							auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
+							//simulator.fall(nextStage);
+
+							int score;
+							simulator.next(nextStage, score);
+
+							if (!simulator.isDead(nextStage))
+							{
+								const auto stageHash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+								const pair<int, Hash::Type> hash = { score,stageHash };
+
+								if (hashSet[t].find(hash) == hashSet[t].end())
+								{
+									Data data;
+									data.stage = move(nextStage);
+									data.obstacle = obstacle - score2obstacle(score);
+									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1);
+									data.firstEvaluation = firstEvaluation;
+
+									hashSet[t].insert(hash);
+
+									qData[t + 1].emplace(data);
+								}
+							}
+						}
+					}
+
+				}
+			}
+		}
+
+		return qData[Turn];
+	}
+
 	const vector<Data> attackThink() {
 
 		vector<Data> commands;
@@ -115,7 +240,7 @@ private:
 
 				if (myObstacle >= 20)
 				{
-					if (enSendBlock - mySendBlock >= 5)
+					if (mySendBlock - enSendBlock >= 5)
 					{
 						return true;
 					}
