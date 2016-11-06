@@ -100,6 +100,7 @@ public:
 
 	//全ての処理終了(参照渡し)
 	//あらかじめブロックを落としておいてください
+	//score,chain
 	const tuple<int, int> next(StageArray& stage) const {
 
 		int score = 0;

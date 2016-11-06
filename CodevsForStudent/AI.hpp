@@ -8,26 +8,7 @@ public:
 
 	const string think() {
 
-		//前半部分で、攻撃するかどうかの判断を行う
-		//攻撃判断には探索を行わず、1次譜面のみで判断を行う
-		//攻撃する場合には攻撃可能なパターンを書き出し、次に渡す
-
-		//後半部分で、ブロックの置き方を決める。
-		//探査を行い、なるべく連鎖数を増やす
-		//パターンが渡されている場合、そのパターンから探査する
-		//連鎖はなるべく2個か3個のブロックで行う。
-
-		//凝視の改良を行う
-		//本当に打っても大丈夫か
-		//連鎖の伸びはどうなのか
-		//お邪魔の閾値の変動
-		//お邪魔対応の閾値の変動
-
-		const auto attackCommands = attackThink();
-
-		const auto command = chainThink(attackCommands);
-
-		return command.toString();
+		return Command().toString();
 	}
 
 private:
@@ -42,22 +23,12 @@ private:
 	};
 
 	struct Data {
-		Command command;
 		StageArray stage;
-		int obstacle;
-		Evaluation evaluation;
-		Evaluation firstEvaluation;
-		int score;
-
-		const bool operator<(const Data& d) const { return evaluation < d.evaluation; }
+		queue<Command> command;
+		int obstacle = 0;
+		int score = 0;
+		int turn = 0;
 	};
-
-	Data lastData;
-
-	const Data enemyThink(int obstacle) {
-
-		return Data();
-	}
 
 	const int getMaxScore(const StageArray& stage, const Pack& pack) const {
 
@@ -89,15 +60,75 @@ private:
 		return maxScore;
 	}
 
-	const vector<Data> attackThink() {
+	int triggerTurn = 20;
 
-		return vector<Data>();
-	}
+	const vector<Command> thinkChain() const {
 
-	const Command chainThink(const vector<Data>& commands) {
+		const int now = Share::getNow();
+		const int Width = 32;
 
-		cerr << "詰みです" << endl;
-		return Command();
+		const auto& packs = Share::getPacks();
+
+		priority_queue<Data> que;
+		Simulator simulator;
+
+		Timer timer(chrono::milliseconds(1000));
+		timer.start();
+		while (!timer)
+		{
+			priority_queue<Data> next;
+
+			const int turn = que.top().turn;
+			if (turn >= Share::getTurn()) break;
+
+			for (int w = 0; w < Width; w++)
+			{
+				if (que.empty()) break;
+
+				const auto top = que.top();
+				que.pop();
+
+				int obstacle = top.obstacle;
+
+				const auto pack = packs[turn].getFullObstacle(obstacle);
+				const auto packArr = pack.getArray();
+				const auto sides = pack.getSide();
+
+				const auto stage = top.stage;
+				const auto nextTurn = top.turn + 1;
+
+				for (int r = 0; r < Rotation; r++)
+				{
+					const int packWidth = sides[r].second - sides[r].first + 1;
+					const int left = 0 - sides[r].first;
+					const int right = StageWidth - packWidth + 1 - sides[r].first;
+
+					for (int pos = left; pos < right; pos++)
+					{
+						auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
+						const auto eval = simulator.next(nextStage);
+
+						const int score = get<0>(eval);
+						const int chain = get<1>(eval);
+
+						if (!simulator.isDead(nextStage))
+						{
+							Data data = top;
+							data.command.emplace(pos, r);
+							data.stage = move(nextStage);
+							data.obstacle = obstacle - score2obstacle(score);
+
+							que.emplace(data);
+						}
+					}
+
+				}
+			}
+
+			que = move(next);
+		}
+
+		return vector<Command>();
 	}
 
 };

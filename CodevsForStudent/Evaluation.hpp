@@ -6,7 +6,7 @@ class Evaluation {
 public:
 
 	Evaluation() = default;
-	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn) {
+	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn, const int triggerTurn) {
 
 		setTopBlock(stage);
 		evaluationBlockFlat(stage);
