@@ -80,7 +80,7 @@ private:
 	const queue<Command> thinkChain() const {
 
 		const int now = Share::getNow();
-		const int Width = 32;
+		const int Width = 64;
 
 		const auto& packs = Share::getPacks();
 
@@ -159,7 +159,11 @@ private:
 		queue<Command> com;
 		if (!que.empty())
 		{
-			com.push(que.top().command.front());
+			const auto top = que.top();
+
+			cerr << "æ“Ç‚ÝŽè”:" << top.turn << endl;
+			top.evaluation.show();
+			com.push(top.command.front());
 			return com;
 		}
 
