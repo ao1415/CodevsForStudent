@@ -91,19 +91,6 @@ private:
 					simulator.next(nextStage, score);
 					enMaxScore = max(enMaxScore, score);
 
-					/*
-					int space = 0;
-					for (int x = 0; x < nextStage.getWidth(); x++)
-					{
-						for (int y = nextStage.getHeight() - 1; y >= 0; y++)
-						{
-							if (nextStage[y][x] == EmptyBlock)
-								break;
-							space++;
-						}
-					}
-					enMaxSpace = max(enMaxSpace, space);
-					*/
 				}
 			}
 
@@ -126,7 +113,7 @@ private:
 				const int mySendBlock = score2obstacle(myScore) - myObstacle;
 				const int enSendBlock = score2obstacle(enMaxScore) - enObstacle;
 
-				if (enObstacle >= 20)
+				if (myObstacle >= 20)
 				{
 					if (enSendBlock - mySendBlock >= 10)
 					{
@@ -144,11 +131,6 @@ private:
 
 				if (mySendBlock > enSendBlock)
 				{
-					//if (mySendBlock >= 50)
-					//{
-					//	return true;
-					//}
-					//if (mySendBlock >= enMaxSpace * 0.3)
 					if (mySendBlock >= Share::getEnFreeSpace() * 0.5)
 					{
 						return true;
@@ -187,12 +169,12 @@ private:
 
 							if (shotJudge(data, score))
 							{
-								data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
+								data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1, triggerTurn);
 								data.firstEvaluation = data.evaluation;
 								commands.push_back(data);
 							}
 
-							data.evaluation = Evaluation(data.stage, score, myObstacle, Share::getNow() + 1);
+							data.evaluation = Evaluation(data.stage, score, myObstacle, Share::getNow() + 1, triggerTurn);
 							data.firstEvaluation = data.evaluation;
 
 							allCommands.emplace_back(data);
@@ -205,11 +187,15 @@ private:
 		if (!commands.empty())
 		{
 			cerr << "！発火！" << endl;
+			triggerTurn += 20;
 			return commands;
 		}
+		if (Share::getNow() >= triggerTurn) triggerTurn = Share::getNow() + 3;
 
 		return allCommands;
 	}
+
+	int triggerTurn = 20;
 
 	const Command chainThink(const vector<Data>& commands) {
 
@@ -224,12 +210,7 @@ private:
 		array<priority_queue<Data>, Turn + 1> qData;
 		array<set<Hash::Type>, Turn> hashSet;
 
-		//gccでコンパイルできなかった
-		//qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
 		for (const auto& com : commands) { qData[0].push(com); }
-
-		//gccでコンパイルできなかった
-		//Timer timer(1000ms);
 
 		Timer timer(chrono::milliseconds(1000));
 		timer.start();
@@ -280,7 +261,7 @@ private:
 									data.command = command;
 									data.stage = move(nextStage);
 									data.obstacle = obstacle - score2obstacle(score);
-									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1);
+									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1, triggerTurn);
 									data.firstEvaluation = firstEvaluation;
 
 									hashSet[t].insert(hash);
@@ -299,7 +280,8 @@ private:
 		{
 			const auto& top = qData[Turn].top();
 			lastData = top;
-			//top.evaluation.show();
+			cerr << "トリガーターン:" << triggerTurn << endl;
+			top.evaluation.show();
 			top.firstEvaluation.show();
 			return top.command;
 		}

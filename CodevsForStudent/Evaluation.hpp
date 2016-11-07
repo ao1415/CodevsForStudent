@@ -6,7 +6,7 @@ class Evaluation {
 public:
 
 	Evaluation() = default;
-	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn) {
+	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn, const int triggerTurn) {
 
 		setTopBlock(stage);
 		evaluationBlockFlat(stage);
@@ -17,8 +17,17 @@ public:
 
 		totalScore -= blockFlatScore * 1000;
 
-		//totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
-		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
+		const auto func = [](const int range) {
+			switch (range)
+			{
+			case 0: return 10.0;
+			case 1: return 8.0;
+			case 2: return 5.0;
+			default: return -10.0;
+			}
+		};
+
+		totalScore += int(score*func(abs(triggerTurn - turn)));
 
 	}
 
@@ -122,9 +131,6 @@ private:
 
 		const auto blockContainPacks = Share::getBlockContainPacks();
 
-		//一度発火させて、発火後の形をもう一度評価してみる？
-		//発火ブロックがお邪魔で埋まっても発火できるかみてみる？
-
 		for (int n = 1; n < AddScore; n++)
 		{
 			int first = find_blockTurn(n, blockContainPacks, turn) - turn;
@@ -144,7 +150,6 @@ private:
 					score = int(e*score);
 					chain = int(e*chain);
 
-					//*
 					if (score > chainScore[0])
 					{
 						chainScore[1] = chainScore[0];
@@ -163,12 +168,6 @@ private:
 					{
 						chainNumber[1] = chain;
 					}
-					/*/
-
-					//2つぐらい候補出してみる？
-					chainScore = max(chainScore, score);
-					chainNumber = max(chainNumber, chain);
-					*/
 				}
 			}
 		}
