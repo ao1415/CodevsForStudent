@@ -8,7 +8,17 @@ public:
 
 	const string think() {
 
-		return Command().toString();
+		if (commands.empty())
+		{
+			commands = thinkChain();
+			const int r = abs(Share::getNow() + (int)commands.size() - triggerTurn);
+			if (r < 3) triggerTurn += 20;
+		}
+
+		const Command com = commands.front();
+		commands.pop();
+
+		return com.toString();
 	}
 
 private:
@@ -28,6 +38,10 @@ private:
 		int obstacle = 0;
 		int score = 0;
 		int turn = 0;
+		Evaluation evaluation;
+
+		const bool operator<(const Data& d) const { return evaluation < d.evaluation; }
+
 	};
 
 	const int getMaxScore(const StageArray& stage, const Pack& pack) const {
@@ -60,9 +74,10 @@ private:
 		return maxScore;
 	}
 
-	int triggerTurn = 20;
+	int triggerTurn = 0;
+	queue<Command> commands;
 
-	const vector<Command> thinkChain() const {
+	const queue<Command> thinkChain() const {
 
 		const int now = Share::getNow();
 		const int Width = 32;
@@ -72,12 +87,21 @@ private:
 		priority_queue<Data> que;
 		Simulator simulator;
 
+		{
+			Data now;
+			now.stage = Share::getMyStage();
+			now.obstacle = Share::getMyObstacle();
+			now.turn = Share::getNow();
+			que.emplace(now);
+		}
+
 		Timer timer(chrono::milliseconds(1000));
 		timer.start();
 		while (!timer)
 		{
 			priority_queue<Data> next;
 
+			if (que.empty()) break;
 			const int turn = que.top().turn;
 			if (turn >= Share::getTurn()) break;
 
@@ -96,6 +120,7 @@ private:
 
 				const auto stage = top.stage;
 				const auto nextTurn = top.turn + 1;
+				const auto topScore = top.score;
 
 				for (int r = 0; r < Rotation; r++)
 				{
@@ -117,8 +142,11 @@ private:
 							data.command.emplace(pos, r);
 							data.stage = move(nextStage);
 							data.obstacle = obstacle - score2obstacle(score);
+							data.score = topScore + score;
+							data.turn = nextTurn;
+							data.evaluation = Evaluation(nextStage, score, obstacle, nextTurn, triggerTurn);
 
-							que.emplace(data);
+							next.emplace(data);
 						}
 					}
 
@@ -128,7 +156,16 @@ private:
 			que = move(next);
 		}
 
-		return vector<Command>();
+		queue<Command> com;
+		if (!que.empty())
+		{
+			com.push(que.top().command.front());
+			return com;
+		}
+
+		cerr << "‹l‚Ý‚Å‚·" << endl;
+		com.push(Command());
+		return com;
 	}
 
 };
