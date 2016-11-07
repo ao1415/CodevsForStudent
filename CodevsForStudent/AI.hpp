@@ -115,7 +115,7 @@ private:
 
 				if (myObstacle >= 20)
 				{
-					if (enSendBlock - mySendBlock >= 10)
+					if (enSendBlock - mySendBlock >= 0)
 					{
 						return true;
 					}
