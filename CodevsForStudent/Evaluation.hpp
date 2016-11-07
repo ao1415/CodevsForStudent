@@ -20,9 +20,9 @@ public:
 		const auto func = [](const int range) {
 			switch (range)
 			{
-			case 0: return 10.0;
-			case 1: return 8.0;
-			case 2: return 5.0;
+			case 0: return 50.0;
+			case 1: return 40.0;
+			case 2: return 25.0;
 			default: return -10.0;
 			}
 		};

@@ -115,8 +115,9 @@ private:
 
 				if (myObstacle >= 20)
 				{
-					if (enSendBlock - mySendBlock >= 0)
+					if (mySendBlock - enSendBlock >= 0)
 					{
+						//cerr << data.command.toString() << "•Ô‚¹‚é‚ÆŽv‚Á‚ÄUŒ‚‚µ‚Ü‚·:" << mySendBlock << "," << enSendBlock << endl;
 						return true;
 					}
 				}
@@ -133,6 +134,7 @@ private:
 				{
 					if (mySendBlock >= Share::getEnFreeSpace() * 0.5)
 					{
+						//cerr << data.command.toString() << "‚Â‚Ô‚¹‚é‚ÆŽv‚Á‚ÄUŒ‚‚µ‚Ü‚·" << endl;
 						return true;
 					}
 				}
@@ -212,11 +214,18 @@ private:
 
 		for (const auto& com : commands) { qData[0].push(com); }
 
-		Timer timer(chrono::milliseconds(1000));
+		Timer timer;
+
+		if (now + Turn < triggerTurn)
+			timer.set(chrono::milliseconds(1000));
+		else
+			timer.set(chrono::milliseconds(5000));
+
 		timer.start();
 
 		while (!timer)
 		{
+			bool flag = false;
 			for (int t = 0; t < Turn; t++)
 			{
 				const int turn = now + t + 1;
@@ -267,6 +276,8 @@ private:
 									hashSet[t].insert(hash);
 
 									qData[t + 1].emplace(data);
+
+									flag = true;
 								}
 							}
 						}
@@ -274,6 +285,7 @@ private:
 
 				}
 			}
+			if (!flag) break;
 		}
 
 		if (!qData[Turn].empty())
