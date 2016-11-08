@@ -8,25 +8,109 @@ public:
 
 	const string think() {
 
-		//前半部分で、攻撃するかどうかの判断を行う
-		//攻撃判断には探索を行わず、1次譜面のみで判断を行う
-		//攻撃する場合には攻撃可能なパターンを書き出し、次に渡す
+		Simulator simulator;
+		const int now = Share::getNow();
 
-		//後半部分で、ブロックの置き方を決める。
-		//探査を行い、なるべく連鎖数を増やす
-		//パターンが渡されている場合、そのパターンから探査する
-		//連鎖はなるべく2個か3個のブロックで行う。
+		const auto enObstacle = Share::getEnObstacle();
+		const auto enMaxScore = getStrength(Share::getEnStage(), Share::getEnObstacle());
 
-		//凝視の改良を行う
-		//本当に打っても大丈夫か
-		//連鎖の伸びはどうなのか
-		//お邪魔の閾値の変動
-		//お邪魔対応の閾値の変動
-		const auto attackCommands = attackThink();
+		const auto myObstacle = Share::getMyObstacle();
+		const auto myMaxScore = getStrength(Share::getMyStage(), Share::getMyObstacle());
 
-		const auto command = chainThink(attackCommands);
+		const auto enemyData = simulator.getSimulationData(Share::getEnStage(), now);
 
-		return command.toString();
+		const int enSendBlocks = score2obstacle(get<0>(enMaxScore)) - enObstacle;
+		const int mySendBlocks = score2obstacle(get<0>(myMaxScore)) - myObstacle;
+
+		//相手が致命的な攻撃をできる
+		const bool enFatalAttacked = (enSendBlocks >= Share::getMyFreeSpace()*0.5);
+		//相手が攻撃をできる
+		const bool enAttacked = (enSendBlocks >= 50);
+
+		const bool enAttacking = (myObstacle > myObstacleNumber);
+
+		//自分が致命的な攻撃をできる
+		const bool myFatalAttacked = (mySendBlocks >= Share::getEnFreeSpace()*0.5);
+		//自分が攻撃をできる
+		const bool myAttacked = (mySendBlocks >= 50);
+
+		enAttackChanged = (!enAttackState && enAttackState != enAttacking);
+		enAttackState = enAttacking;
+
+		if (enAttacking)
+		{
+			if (enFatalAttacked)
+			{
+				if (myAttacked)
+				{
+					if (enSendBlocks - mySendBlocks >= -5)
+					{
+						queue<Command> buff;
+						for (const auto com : get<1>(myMaxScore)) buff.push(com);
+						commandBuffer = move(buff);
+						cerr << "致命的な攻撃をされたので対応する" << endl;
+					}
+				}
+			}
+			else if (enAttacked)
+			{
+				if (myAttacked)
+				{
+					if (enSendBlocks - mySendBlocks >= 10)
+					{
+						queue<Command> buff;
+						for (const auto com : get<1>(myMaxScore)) buff.push(com);
+						commandBuffer = move(buff);
+						cerr << "攻撃をされたので対応する" << endl;
+					}
+				}
+			}
+		}
+		else if (myFatalAttacked)
+		{
+			myObstacleNumber = myObstacle;
+			if (enemyData.maxScoreTurn < 10)
+			{
+				if (score2obstacle(enemyData.maxScore) > mySendBlocks - enemyData.maxScoreTurn * 6)
+				{
+					queue<Command> buff;
+					for (const auto com : get<1>(myMaxScore)) buff.push(com);
+					commandBuffer = move(buff);
+					cerr << "反撃されても大丈夫そうなので攻撃する" << endl;
+				}
+			}
+			else
+			{
+				queue<Command> buff;
+				for (const auto com : get<1>(myMaxScore)) buff.push(com);
+				commandBuffer = move(buff);
+				cerr << "反撃されなさそうなので攻撃する" << endl;
+			}
+		}
+
+		if (commandBuffer.empty() || enAttackChanged)
+		{
+			enAttackChanged = false;
+
+			Data seed;
+			seed.stage = Share::getMyStage();
+			seed.obstacle = Share::getMyObstacle();
+			seed.turn = Share::getNow();
+
+			const Data data = chainThink(seed, chrono::milliseconds(10000));
+			saveData = data;
+			saveData.evaluation.show();
+			commandBuffer = saveData.command;
+		}
+
+		if (!commandBuffer.empty())
+		{
+			const Command com = commandBuffer.front();
+			commandBuffer.pop();
+			return com.toString();
+		}
+
+		return "0 0";
 	}
 
 private:
@@ -41,168 +125,108 @@ private:
 	};
 
 	struct Data {
-		Command command;
+		queue<Command> command;
 		StageArray stage;
 		int obstacle;
 		Evaluation evaluation;
-		Evaluation firstEvaluation;
+		int turn = 0;
 
 		const bool operator<(const Data& d) const { return evaluation < d.evaluation; }
 	};
 
-	Data lastData;
+	bool enAttackState = false;
+	bool enAttackChanged = false;
 
-	const vector<Data> attackThink() {
+	int myObstacleNumber = 0;
 
-		vector<Data> commands;
-		vector<Data> allCommands;
-		Simulator simulator;
+	queue<Command> commandBuffer;
+	Data saveData;
+
+	const tuple<int, vector<Command>> getStrength(const StageArray& stage, int obstacle) const {
+
+		int maxScore = 0;
+		vector<Command> commands;
 
 		const auto& packs = Share::getPacks();
-		const int now = Share::getNow();
+		const auto& now = Share::getNow();
 
-		int enMaxScore = 0;
-		int enObstacle = Share::getEnObstacle();
-		int enMaxSpace = 0;
+		Simulator simulator;
 
-		const auto enemyData = simulator.getSimulationData(Share::getEnStage(), now);
+		int obstacle1 = obstacle;
 
-		//凝視
+		const auto& pack1 = packs[now].getFullObstacle(obstacle1);
+		const auto& packArr1 = pack1.getArray();
+		const auto& sides1 = pack1.getSide();
+
+		//2ターンでの最高スコア
+		for (int r1 = 0; r1 < Rotation; r1++)
 		{
-			const auto& enStage = Share::getEnStage();
+			const int packWidth1 = sides1[r1].second - sides1[r1].first + 1;
+			const int left1 = 0 - sides1[r1].first;
+			const int right1 = StageWidth - packWidth1 + 1 - sides1[r1].first;
 
-			const auto& enPack = packs[now].getFullObstacle(enObstacle);
-			const auto& enPackArr = enPack.getArray();
-			const auto& enSides = enPack.getSide();
-
-			//現在のターンでの最高スコア
-			for (int r = 0; r < Rotation; r++)
+			for (int pos1 = left1; pos1 < right1; pos1++)
 			{
-				const int packWidth = enSides[r].second - enSides[r].first + 1;
-				const int left = 0 - enSides[r].first;
-				const int right = StageWidth - packWidth + 1 - enSides[r].first;
+				auto nextStage1 = simulator.csetBlocks(stage, packArr1[r1], pos1);
+				simulator.fall(nextStage1);
 
-				for (int pos = left; pos < right; pos++)
+				int score1;
+				simulator.next(nextStage1, score1);
+
+				if (!simulator.isDead(nextStage1))
 				{
-					auto nextStage = simulator.csetBlocks(enStage, enPackArr[r], pos);
-					simulator.fall(nextStage);
-
-					int score;
-					simulator.next(nextStage, score);
-					enMaxScore = max(enMaxScore, score);
-
-				}
-			}
-
-		}
-
-		//攻撃判断
-		{
-			const auto& myStage = Share::getMyStage();
-			int myObstacle = Share::getMyObstacle();
-
-			//set<Hash::Type> hashSet;
-
-			const auto& myPack = packs[now].getFullObstacle(myObstacle);
-			const auto& myPackArr = myPack.getArray();
-			const auto& mySides = myPack.getSide();
-
-			//攻撃判定関数
-			const auto shotJudge = [&](const Data& data, const int myScore) {
-
-				const int mySendBlock = score2obstacle(myScore) - myObstacle;
-				const int enSendBlock = score2obstacle(enMaxScore) - enObstacle;
-
-				if (myObstacle >= 20)
-				{
-					if (mySendBlock - enSendBlock >= -10)
+					if (maxScore < score1)
 					{
-						//cerr << data.command.toString() << "返せると思って攻撃します:" << mySendBlock << "," << enSendBlock << endl;
-						return true;
+						maxScore = score1;
+						vector<Command> com;
+						com.push_back(Command(pos1, r1));
+						commands = move(com);
 					}
-				}
 
-				if (enemyData.maxScoreTurn < 10)
-				{
-					if (score2obstacle(enemyData.maxScore) > mySendBlock - enemyData.maxScoreTurn * 6)
+					int obstacle2 = obstacle1 - score2obstacle(score1);
+
+					const auto& pack2 = packs[now + 1].getFullObstacle(obstacle2);
+					const auto& packArr2 = pack2.getArray();
+					const auto& sides2 = pack2.getSide();
+
+					for (int r2 = 0; r2 < Rotation; r2++)
 					{
-						return false;
-					}
-				}
+						const int packWidth2 = sides2[r2].second - sides2[r2].first + 1;
+						const int left2 = 0 - sides2[r2].first;
+						const int right2 = StageWidth - packWidth2 + 1 - sides2[r2].first;
 
-				if (mySendBlock > enSendBlock)
-				{
-					if (mySendBlock >= Share::getEnFreeSpace() * 0.5)
-					{
-						//cerr << data.command.toString() << "つぶせると思って攻撃します" << endl;
-						return true;
-					}
-				}
-
-				return false;
-			};
-
-			for (int r = 0; r < Rotation; r++)
-			{
-				const int packWidth = mySides[r].second - mySides[r].first + 1;
-				const int left = 0 - mySides[r].first;
-				const int right = StageWidth - packWidth + 1 - mySides[r].first;
-
-				for (int pos = left; pos < right; pos++)
-				{
-					auto nextStage = simulator.csetBlocks(myStage, myPackArr[r], pos);
-					simulator.fall(nextStage);
-
-					int score;
-					simulator.next(nextStage, score);
-
-					if (!simulator.isDead(nextStage))
-					{
-						//const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
-
-						//if (hashSet.find(hash) == hashSet.end())
+						for (int pos2 = left2; pos2 < right2; pos2++)
 						{
-							Data data;
-							data.command = Command(pos, r);
-							data.stage = move(nextStage);
-							data.obstacle = myObstacle - score2obstacle(score);
+							auto nextStage2 = simulator.csetBlocks(nextStage1, packArr2[r2], pos2);
+							simulator.fall(nextStage2);
 
-							//hashSet.insert(hash);
+							int score2;
+							simulator.next(nextStage2, score2);
 
-							if (shotJudge(data, score))
+							if (!simulator.isDead(nextStage2))
 							{
-								data.evaluation = Evaluation(data.stage, score, myObstacle, Share::getNow() + 1, triggerTurn);
-								data.firstEvaluation = data.evaluation;
-								commands.push_back(data);
+								if (maxScore < score2)
+								{
+									maxScore = score2;
+									vector<Command> com;
+									com.push_back(Command(pos1, r1));
+									com.push_back(Command(pos2, r2));
+									commands = move(com);
+								}
 							}
-
-							data.evaluation = Evaluation(data.stage, score, myObstacle, Share::getNow() + 1, triggerTurn);
-							data.firstEvaluation = data.evaluation;
-
-							allCommands.emplace_back(data);
 						}
 					}
 				}
 			}
 		}
 
-		if (!commands.empty())
-		{
-			cerr << "！発火！" << endl;
-			triggerTurn += 20;
-			return commands;
-		}
-		if (Share::getNow() >= triggerTurn) triggerTurn = Share::getNow() + 3;
-
-		return allCommands;
+		return{ maxScore,commands };
 	}
 
-	int triggerTurn = 20;
-
-	const Command chainThink(const vector<Data>& commands) {
+	const Data chainThink(const Data& seed, const chrono::milliseconds& ms) {
 
 		const auto& packs = Share::getPacks();
-		const int now = Share::getNow();
+		const int now = seed.turn;
 		const int maxTurn = Share::getTurn();
 
 		const int Turn = 10;
@@ -212,14 +236,9 @@ private:
 		array<priority_queue<Data>, Turn + 1> qData;
 		//array<set<Hash::Type>, Turn> hashSet;
 
-		for (const auto& com : commands) { qData[0].push(com); }
+		qData[0].push(seed);
 
-		Timer timer;
-
-		//if (now + Turn < triggerTurn)
-		timer.set(chrono::milliseconds(1000));
-		//else
-		//	timer.set(chrono::milliseconds(5000));
+		Timer timer(ms);
 
 		timer.start();
 
@@ -228,7 +247,7 @@ private:
 			bool flag = false;
 			for (int t = 0; t < Turn; t++)
 			{
-				const int turn = now + t + 1;
+				const int turn = now + t;
 				if (turn >= maxTurn) break;
 
 				for (int i = 0; i < ChokudaiWidth; i++)
@@ -239,7 +258,6 @@ private:
 					qData[t].pop();
 
 					const auto& command = topData.command;
-					const auto& firstEvaluation = topData.firstEvaluation;
 					const auto& stage = topData.stage;
 					int obstacle = topData.obstacle;
 					const auto& pack = packs[turn].getFullObstacle(obstacle);
@@ -262,23 +280,17 @@ private:
 
 							if (!simulator.isDead(nextStage))
 							{
-								//const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+								Data data;
+								data.command = command;
+								data.command.emplace(Command(pos, r));
 
-								//if (hashSet[t].find(hash) == hashSet[t].end())
-								{
-									Data data;
-									data.command = command;
-									data.stage = move(nextStage);
-									data.obstacle = obstacle - score2obstacle(score);
-									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1, triggerTurn);
-									data.firstEvaluation = firstEvaluation;
+								data.stage = move(nextStage);
+								data.obstacle = obstacle - score2obstacle(score);
+								data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1);
 
-									//hashSet[t].insert(hash);
+								qData[t + 1].emplace(data);
 
-									qData[t + 1].emplace(data);
-
-									flag = true;
-								}
+								flag = true;
 							}
 						}
 					}
@@ -291,17 +303,11 @@ private:
 		if (!qData[Turn].empty())
 		{
 			const auto& top = qData[Turn].top();
-			lastData = top;
-			cerr << "トリガーターン:" << triggerTurn << endl;
-			top.evaluation.show();
-			top.firstEvaluation.show();
-			return top.command;
+			return top;
 		}
 
-		lastData = Data();
-
 		cerr << "詰みです" << endl;
-		return Command();
+		return Data();
 	}
 
 };

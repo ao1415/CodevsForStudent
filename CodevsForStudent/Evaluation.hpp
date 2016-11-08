@@ -6,7 +6,7 @@ class Evaluation {
 public:
 
 	Evaluation() = default;
-	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn, const int triggerTurn) {
+	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn) {
 
 		setTopBlock(stage);
 		//evaluationBlockFlat(stage);
@@ -16,18 +16,6 @@ public:
 		totalScore += chainNumber[1] * 10 + chainScore[1] / 10;
 
 		//totalScore -= blockFlatScore * 1000;
-
-		const auto func = [](const int range) {
-			switch (range)
-			{
-			case 0: return 50.0;
-			case 1: return 40.0;
-			case 2: return 25.0;
-			default: return -10.0;
-			}
-		};
-
-		totalScore += int(score*func(abs(triggerTurn - turn)));
 
 	}
 
