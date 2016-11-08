@@ -101,7 +101,7 @@ private:
 			const auto& myStage = Share::getMyStage();
 			int myObstacle = Share::getMyObstacle();
 
-			set<Hash::Type> hashSet;
+			//set<Hash::Type> hashSet;
 
 			const auto& myPack = packs[now].getFullObstacle(myObstacle);
 			const auto& myPackArr = myPack.getArray();
@@ -115,7 +115,7 @@ private:
 
 				if (myObstacle >= 20)
 				{
-					if (mySendBlock - enSendBlock >= 0)
+					if (mySendBlock - enSendBlock >= -10)
 					{
 						//cerr << data.command.toString() << "•Ô‚¹‚é‚ÆŽv‚Á‚ÄUŒ‚‚µ‚Ü‚·:" << mySendBlock << "," << enSendBlock << endl;
 						return true;
@@ -158,20 +158,20 @@ private:
 
 					if (!simulator.isDead(nextStage))
 					{
-						const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+						//const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
 
-						if (hashSet.find(hash) == hashSet.end())
+						//if (hashSet.find(hash) == hashSet.end())
 						{
 							Data data;
 							data.command = Command(pos, r);
 							data.stage = move(nextStage);
 							data.obstacle = myObstacle - score2obstacle(score);
 
-							hashSet.insert(hash);
+							//hashSet.insert(hash);
 
 							if (shotJudge(data, score))
 							{
-								data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1, triggerTurn);
+								data.evaluation = Evaluation(data.stage, score, myObstacle, Share::getNow() + 1, triggerTurn);
 								data.firstEvaluation = data.evaluation;
 								commands.push_back(data);
 							}
@@ -210,16 +210,16 @@ private:
 
 		Simulator simulator;
 		array<priority_queue<Data>, Turn + 1> qData;
-		array<set<Hash::Type>, Turn> hashSet;
+		//array<set<Hash::Type>, Turn> hashSet;
 
 		for (const auto& com : commands) { qData[0].push(com); }
 
 		Timer timer;
 
-		if (now + Turn < triggerTurn)
-			timer.set(chrono::milliseconds(1000));
-		else
-			timer.set(chrono::milliseconds(5000));
+		//if (now + Turn < triggerTurn)
+		timer.set(chrono::milliseconds(1000));
+		//else
+		//	timer.set(chrono::milliseconds(5000));
 
 		timer.start();
 
@@ -262,9 +262,9 @@ private:
 
 							if (!simulator.isDead(nextStage))
 							{
-								const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+								//const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
 
-								if (hashSet[t].find(hash) == hashSet[t].end())
+								//if (hashSet[t].find(hash) == hashSet[t].end())
 								{
 									Data data;
 									data.command = command;
@@ -273,7 +273,7 @@ private:
 									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1, triggerTurn);
 									data.firstEvaluation = firstEvaluation;
 
-									hashSet[t].insert(hash);
+									//hashSet[t].insert(hash);
 
 									qData[t + 1].emplace(data);
 

@@ -9,13 +9,13 @@ public:
 	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn, const int triggerTurn) {
 
 		setTopBlock(stage);
-		evaluationBlockFlat(stage);
+		//evaluationBlockFlat(stage);
 		searchChain(stage, score, obstacle, turn);
 
 		totalScore += chainNumber[0] * 100 + chainScore[0];
 		totalScore += chainNumber[1] * 10 + chainScore[1] / 10;
 
-		totalScore -= blockFlatScore * 1000;
+		//totalScore -= blockFlatScore * 1000;
 
 		const auto func = [](const int range) {
 			switch (range)
