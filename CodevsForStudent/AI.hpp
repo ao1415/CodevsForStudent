@@ -46,6 +46,7 @@ private:
 		int obstacle;
 		Evaluation evaluation;
 		Evaluation firstEvaluation;
+		int score;
 
 		const bool operator<(const Data& d) const { return evaluation < d.evaluation; }
 	};
@@ -91,19 +92,6 @@ private:
 					simulator.next(nextStage, score);
 					enMaxScore = max(enMaxScore, score);
 
-					/*
-					int space = 0;
-					for (int x = 0; x < nextStage.getWidth(); x++)
-					{
-						for (int y = nextStage.getHeight() - 1; y >= 0; y++)
-						{
-							if (nextStage[y][x] == EmptyBlock)
-								break;
-							space++;
-						}
-					}
-					enMaxSpace = max(enMaxSpace, space);
-					*/
 				}
 			}
 
@@ -126,9 +114,9 @@ private:
 				const int mySendBlock = score2obstacle(myScore) - myObstacle;
 				const int enSendBlock = score2obstacle(enMaxScore) - enObstacle;
 
-				if (enObstacle >= 20)
+				if (myObstacle >= 20)
 				{
-					if (enSendBlock - mySendBlock >= 10)
+					if (mySendBlock >= 10)
 					{
 						return true;
 					}
@@ -182,17 +170,18 @@ private:
 							data.command = Command(pos, r);
 							data.stage = move(nextStage);
 							data.obstacle = myObstacle - score2obstacle(score);
+							data.score = score;
 
 							hashSet.insert(hash);
 
 							if (shotJudge(data, score))
 							{
-								data.evaluation = Evaluation(data.stage, 0, myObstacle, Share::getNow() + 1);
+								data.evaluation = Evaluation(data.stage, data.score, myObstacle, Share::getNow() + 1);
 								data.firstEvaluation = data.evaluation;
 								commands.push_back(data);
 							}
 
-							data.evaluation = Evaluation(data.stage, score, myObstacle, Share::getNow() + 1);
+							data.evaluation = Evaluation(data.stage, data.score, myObstacle, Share::getNow() + 1);
 							data.firstEvaluation = data.evaluation;
 
 							allCommands.emplace_back(data);
@@ -255,6 +244,7 @@ private:
 					const auto& pack = packs[turn].getFullObstacle(obstacle);
 					const auto& packArr = pack.getArray();
 					const auto& sides = pack.getSide();
+					const auto& topScore = topData.score;
 
 					for (int r = 0; r < Rotation; r++)
 					{
@@ -280,7 +270,10 @@ private:
 									data.command = command;
 									data.stage = move(nextStage);
 									data.obstacle = obstacle - score2obstacle(score);
-									data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1);
+
+									data.score = topScore + score;
+
+									data.evaluation = Evaluation(data.stage, data.score, obstacle, turn + 1);
 									data.firstEvaluation = firstEvaluation;
 
 									hashSet[t].insert(hash);

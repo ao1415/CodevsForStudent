@@ -10,12 +10,17 @@ public:
 
 		setTopBlock(stage);
 		evaluationBlockFlat(stage);
-		searchChain(stage, score, obstacle, turn);
+		searchChain(stage, obstacle, turn);
 
 		totalScore += chainNumber[0] * 100 + chainScore[0];
 		totalScore += chainNumber[1] * 10 + chainScore[1] / 10;
 
 		totalScore -= blockFlatScore * 1000;
+
+		const int enMaxScore = Share::getEnFreeSpace() * 2;
+		totalScore += score > enMaxScore ? score * 100 : -score;
+
+		totalScore += score;
 
 		//totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
 		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
@@ -82,7 +87,7 @@ private:
 		}
 	}
 
-	void searchChain(const StageArray& stage, const int score, const int obstacle, const int turn) {
+	void searchChain(const StageArray& stage, const int obstacle, const int turn) {
 
 		const auto deleteCheck = [](const Point& pos, const StageArray& stage, const int n) {
 
@@ -112,7 +117,7 @@ private:
 			return 1000;
 		};
 
-		const auto nearEval = [](const int range) {
+		const auto nearEval = [](const int range, const int score) {
 			const double e = exp(range - 10);
 			const double r = 1 / (1 + e);
 			return r;
@@ -140,7 +145,7 @@ private:
 					next[point] = n;
 					int score;
 					int chain = simulator.next(next, score);
-					const double e = nearEval(first);
+					const double e = nearEval(first, score);
 					score = int(e*score);
 					chain = int(e*chain);
 
