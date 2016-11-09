@@ -97,10 +97,13 @@ public:
 			seed.obstacle = Share::getMyObstacle();
 			seed.turn = Share::getNow();
 
-			const Data data = chainThink(seed, chrono::milliseconds(10000));
+			const Data data = chainThink(seed, chrono::milliseconds(1000));
 			saveData = data;
 			saveData.evaluation.show();
-			commandBuffer = saveData.command;
+
+			commandBuffer.swap(queue<Command>());
+			if (!saveData.command.empty())
+				commandBuffer.push(saveData.command.front());
 		}
 
 		if (!commandBuffer.empty())
@@ -109,7 +112,7 @@ public:
 			commandBuffer.pop();
 			return com.toString();
 		}
-
+		cerr << "ŽwŽ¦‚È‚µ" << endl;
 		return "0 0";
 	}
 
