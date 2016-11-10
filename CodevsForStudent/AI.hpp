@@ -53,6 +53,9 @@ private:
 
 	Data lastData;
 
+	int enMaxScore;
+	Simulator::SimulationData enemyData;
+
 	const vector<Data> attackThink() {
 
 		vector<Data> commands;
@@ -62,40 +65,10 @@ private:
 		const auto& packs = Share::getPacks();
 		const int now = Share::getNow();
 
-		int enMaxScore = 0;
 		int enObstacle = Share::getEnObstacle();
-		int enMaxSpace = 0;
+		enMaxScore = getMaxScore(Share::getEnStage(), Share::getEnObstacle(), now);
 
-		const auto enemyData = simulator.getSimulationData(Share::getEnStage(), now);
-
-		//ã√éã
-		{
-			const auto& enStage = Share::getEnStage();
-
-			const auto& enPack = packs[now].getFullObstacle(enObstacle);
-			const auto& enPackArr = enPack.getArray();
-			const auto& enSides = enPack.getSide();
-
-			//åªç›ÇÃÉ^Å[ÉìÇ≈ÇÃç≈çÇÉXÉRÉA
-			for (int r = 0; r < Rotation; r++)
-			{
-				const int packWidth = enSides[r].second - enSides[r].first + 1;
-				const int left = 0 - enSides[r].first;
-				const int right = StageWidth - packWidth + 1 - enSides[r].first;
-
-				for (int pos = left; pos < right; pos++)
-				{
-					auto nextStage = simulator.csetBlocks(enStage, enPackArr[r], pos);
-					simulator.fall(nextStage);
-
-					int score;
-					simulator.next(nextStage, score);
-					enMaxScore = max(enMaxScore, score);
-
-				}
-			}
-
-		}
+		enemyData = simulator.getSimulationData(Share::getEnStage(), now);
 
 		//çUåÇîªíf
 		{
@@ -132,11 +105,6 @@ private:
 
 				if (mySendBlock > enSendBlock)
 				{
-					//if (mySendBlock >= 50)
-					//{
-					//	return true;
-					//}
-					//if (mySendBlock >= enMaxSpace * 0.3)
 					if (mySendBlock >= Share::getEnFreeSpace() * 0.5)
 					{
 						return true;
@@ -174,14 +142,16 @@ private:
 
 							hashSet.insert(hash);
 
+							const auto eval = Evaluation(data.stage, data.score, myObstacle, Share::getNow() + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
+
 							if (shotJudge(data, score))
 							{
-								data.evaluation = Evaluation(data.stage, data.score, myObstacle, Share::getNow() + 1);
+								data.evaluation = eval;
 								data.firstEvaluation = data.evaluation;
 								commands.push_back(data);
 							}
 
-							data.evaluation = Evaluation(data.stage, data.score, myObstacle, Share::getNow() + 1);
+							data.evaluation = eval;
 							data.firstEvaluation = data.evaluation;
 
 							allCommands.emplace_back(data);
@@ -273,7 +243,7 @@ private:
 
 									data.score = topScore + score;
 
-									data.evaluation = Evaluation(data.stage, data.score, obstacle, turn + 1);
+									data.evaluation = Evaluation(data.stage, data.score, obstacle, turn + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
 									data.firstEvaluation = firstEvaluation;
 
 									hashSet[t].insert(hash);
@@ -301,6 +271,63 @@ private:
 
 		cerr << "ãlÇ›Ç≈Ç∑" << endl;
 		return Command();
+	}
+
+	const int getMaxScore(const StageArray& seedStage, const int seedObstacle, const int turn, const int count = 2) {
+
+		Simulator simulator;
+
+		int maxScore = 0;
+		const auto& packs = Share::getPacks();
+
+		queue<pair<StageArray, int>> stages;
+		stages.push({ seedStage,seedObstacle });
+
+		for (int i = 0; i < count; i++)
+		{
+			if (turn + i >= Share::getTurn()) break;
+			queue<pair<StageArray, int>> next;
+
+			while (!stages.empty())
+			{
+				const auto& front = stages.front();
+				stages.pop();
+				int obstacle = front.second;
+
+				const auto& stage = front.first;
+				const auto& pack = packs[turn + i].getFullObstacle(obstacle);
+				const auto& packArr = pack.getArray();
+				const auto& sides = pack.getSide();
+
+				for (int r = 0; r < Rotation; r++)
+				{
+					const int packWidth = sides[r].second - sides[r].first + 1;
+					const int left = 0 - sides[r].first;
+					const int right = StageWidth - packWidth + 1 - sides[r].first;
+
+					for (int pos = left; pos < right; pos++)
+					{
+						auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
+						simulator.fall(nextStage);
+
+						int score;
+						simulator.next(nextStage, score);
+
+						if (!simulator.isDead(nextStage))
+						{
+							maxScore = max(maxScore, score);
+							next.emplace(pair<StageArray, int>(nextStage, obstacle));
+						}
+					}
+
+				}
+
+			}
+
+			stages = move(next);
+		}
+
+		return maxScore;
 	}
 
 };

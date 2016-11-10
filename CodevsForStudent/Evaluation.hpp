@@ -6,7 +6,7 @@ class Evaluation {
 public:
 
 	Evaluation() = default;
-	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn) {
+	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn, const int enMaxScore, const int enTriggerTurn, const int enScore) {
 
 		setTopBlock(stage);
 		evaluationBlockFlat(stage);
@@ -17,13 +17,16 @@ public:
 
 		totalScore -= blockFlatScore * 1000;
 
-		const int enMaxScore = Share::getEnFreeSpace() * 2;
-		totalScore += score > enMaxScore ? score * 100 : -score;
-
+		if (score2obstacle(score) >= Share::getEnFreeSpace() * 0.5)
+		{
+			//if (score > enMaxScore)
+			//	totalScore += score * 100;
+			if (score2obstacle(score) >= score2obstacle(enScore - 10))
+				totalScore += score * 100;
+			else
+				totalScore -= score * 100;
+		}
 		totalScore += score;
-
-		//totalScore -= min(chainNumberTriggerRange, chainScoreTriggerRange)*(chainNumber / 10) * 1000;
-		//totalScore -= (chainNumberTrigger + chainScoreTrigger) * 10;
 
 	}
 
