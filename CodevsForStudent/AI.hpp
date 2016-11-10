@@ -8,112 +8,25 @@ public:
 
 	const string think() {
 
-		Simulator simulator;
-		const int now = Share::getNow();
+		//前半部分で、攻撃するかどうかの判断を行う
+		//攻撃判断には探索を行わず、1次譜面のみで判断を行う
+		//攻撃する場合には攻撃可能なパターンを書き出し、次に渡す
 
-		const auto enObstacle = Share::getEnObstacle();
-		const auto enMaxScore = getStrength(Share::getEnStage(), Share::getEnObstacle());
+		//後半部分で、ブロックの置き方を決める。
+		//探査を行い、なるべく連鎖数を増やす
+		//パターンが渡されている場合、そのパターンから探査する
+		//連鎖はなるべく2個か3個のブロックで行う。
 
-		const auto myObstacle = Share::getMyObstacle();
-		const auto myMaxScore = getStrength(Share::getMyStage(), Share::getMyObstacle());
+		//凝視の改良を行う
+		//本当に打っても大丈夫か
+		//連鎖の伸びはどうなのか
+		//お邪魔の閾値の変動
+		//お邪魔対応の閾値の変動
+		const auto attackCommands = attackThink();
 
-		const auto enemyData = simulator.getSimulationData(Share::getEnStage(), now);
+		const auto command = chainThink(attackCommands);
 
-		const int enSendBlocks = score2obstacle(get<0>(enMaxScore)) - enObstacle;
-		const int mySendBlocks = score2obstacle(get<0>(myMaxScore)) - myObstacle;
-
-		//相手が致命的な攻撃をできる
-		const bool enFatalAttacked = (enSendBlocks >= Share::getMyFreeSpace()*0.5);
-		//相手が攻撃をできる
-		const bool enAttacked = (enSendBlocks >= 50);
-
-		const bool enAttacking = (myObstacle > myObstacleNumber);
-
-		//自分が致命的な攻撃をできる
-		const bool myFatalAttacked = (mySendBlocks >= Share::getEnFreeSpace()*0.5);
-		//自分が攻撃をできる
-		const bool myAttacked = (mySendBlocks >= 50);
-
-		enAttackChanged = (!enAttackState && enAttackState != enAttacking);
-		enAttackState = enAttacking;
-
-		if (enAttacking)
-		{
-			if (enFatalAttacked)
-			{
-				if (myAttacked)
-				{
-					if (enSendBlocks - mySendBlocks >= -5)
-					{
-						queue<Command> buff;
-						for (const auto com : get<1>(myMaxScore)) buff.push(com);
-						commandBuffer = move(buff);
-						cerr << "致命的な攻撃をされたので対応する" << endl;
-					}
-				}
-			}
-			else if (enAttacked)
-			{
-				if (myAttacked)
-				{
-					if (enSendBlocks - mySendBlocks >= 10)
-					{
-						queue<Command> buff;
-						for (const auto com : get<1>(myMaxScore)) buff.push(com);
-						commandBuffer = move(buff);
-						cerr << "攻撃をされたので対応する" << endl;
-					}
-				}
-			}
-		}
-		else if (myFatalAttacked)
-		{
-			myObstacleNumber = myObstacle;
-			if (enemyData.maxScoreTurn < 10)
-			{
-				if (score2obstacle(enemyData.maxScore) > mySendBlocks - enemyData.maxScoreTurn * 6)
-				{
-					queue<Command> buff;
-					for (const auto com : get<1>(myMaxScore)) buff.push(com);
-					commandBuffer = move(buff);
-					cerr << "反撃されても大丈夫そうなので攻撃する" << endl;
-				}
-			}
-			else
-			{
-				queue<Command> buff;
-				for (const auto com : get<1>(myMaxScore)) buff.push(com);
-				commandBuffer = move(buff);
-				cerr << "反撃されなさそうなので攻撃する" << endl;
-			}
-		}
-
-		if (commandBuffer.empty() || enAttackChanged)
-		{
-			enAttackChanged = false;
-
-			Data seed;
-			seed.stage = Share::getMyStage();
-			seed.obstacle = Share::getMyObstacle();
-			seed.turn = Share::getNow();
-
-			const Data data = chainThink(seed, chrono::milliseconds(1000));
-			saveData = data;
-			saveData.evaluation.show();
-
-			commandBuffer.swap(queue<Command>());
-			if (!saveData.command.empty())
-				commandBuffer.push(saveData.command.front());
-		}
-
-		if (!commandBuffer.empty())
-		{
-			const Command com = commandBuffer.front();
-			commandBuffer.pop();
-			return com.toString();
-		}
-		cerr << "指示なし" << endl;
-		return "0 0";
+		return command.toString();
 	}
 
 private:
@@ -128,108 +41,139 @@ private:
 	};
 
 	struct Data {
-		queue<Command> command;
+		Command command;
 		StageArray stage;
 		int obstacle;
 		Evaluation evaluation;
-		int turn = 0;
+		Evaluation firstEvaluation;
+		int score;
 
 		const bool operator<(const Data& d) const { return evaluation < d.evaluation; }
 	};
 
-	bool enAttackState = false;
-	bool enAttackChanged = false;
+	Data lastData;
 
-	int myObstacleNumber = 0;
+	int enMaxScore;
+	Simulator::SimulationData enemyData;
 
-	queue<Command> commandBuffer;
-	Data saveData;
+	const vector<Data> attackThink() {
 
-	const tuple<int, vector<Command>> getStrength(const StageArray& stage, int obstacle) const {
-
-		int maxScore = 0;
-		vector<Command> commands;
-
-		const auto& packs = Share::getPacks();
-		const auto& now = Share::getNow();
-
+		vector<Data> commands;
+		vector<Data> allCommands;
 		Simulator simulator;
 
-		int obstacle1 = obstacle;
+		const auto& packs = Share::getPacks();
+		const int now = Share::getNow();
 
-		const auto& pack1 = packs[now].getFullObstacle(obstacle1);
-		const auto& packArr1 = pack1.getArray();
-		const auto& sides1 = pack1.getSide();
+		int enObstacle = Share::getEnObstacle();
+		enMaxScore = getMaxScore(Share::getEnStage(), Share::getEnObstacle(), now);
 
-		//2ターンでの最高スコア
-		for (int r1 = 0; r1 < Rotation; r1++)
+		enemyData = simulator.getSimulationData(Share::getEnStage(), now);
+
+		//攻撃判断
 		{
-			const int packWidth1 = sides1[r1].second - sides1[r1].first + 1;
-			const int left1 = 0 - sides1[r1].first;
-			const int right1 = StageWidth - packWidth1 + 1 - sides1[r1].first;
+			const auto& myStage = Share::getMyStage();
+			int myObstacle = Share::getMyObstacle();
 
-			for (int pos1 = left1; pos1 < right1; pos1++)
-			{
-				auto nextStage1 = simulator.csetBlocks(stage, packArr1[r1], pos1);
-				simulator.fall(nextStage1);
+			set<Hash::Type> hashSet;
 
-				int score1;
-				simulator.next(nextStage1, score1);
+			const auto& myPack = packs[now].getFullObstacle(myObstacle);
+			const auto& myPackArr = myPack.getArray();
+			const auto& mySides = myPack.getSide();
 
-				if (!simulator.isDead(nextStage1))
+			//攻撃判定関数
+			const auto shotJudge = [&](const Data& data, const int myScore) {
+
+				const int mySendBlock = score2obstacle(myScore) - myObstacle;
+				const int enSendBlock = score2obstacle(enMaxScore) - enObstacle;
+
+				if (myObstacle >= 20)
 				{
-					if (maxScore < score1)
+					if (mySendBlock >= 10)
 					{
-						maxScore = score1;
-						vector<Command> com;
-						com.push_back(Command(pos1, r1));
-						commands = move(com);
+						return true;
 					}
+				}
 
-					int obstacle2 = obstacle1 - score2obstacle(score1);
-
-					const auto& pack2 = packs[now + 1].getFullObstacle(obstacle2);
-					const auto& packArr2 = pack2.getArray();
-					const auto& sides2 = pack2.getSide();
-
-					for (int r2 = 0; r2 < Rotation; r2++)
+				if (enemyData.maxScoreTurn < 10)
+				{
+					if (score2obstacle(enemyData.maxScore) > mySendBlock - enemyData.maxScoreTurn * 6)
 					{
-						const int packWidth2 = sides2[r2].second - sides2[r2].first + 1;
-						const int left2 = 0 - sides2[r2].first;
-						const int right2 = StageWidth - packWidth2 + 1 - sides2[r2].first;
+						return false;
+					}
+				}
 
-						for (int pos2 = left2; pos2 < right2; pos2++)
+				if (mySendBlock > enSendBlock)
+				{
+					if (mySendBlock >= Share::getEnFreeSpace() * 0.5)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			};
+
+			for (int r = 0; r < Rotation; r++)
+			{
+				const int packWidth = mySides[r].second - mySides[r].first + 1;
+				const int left = 0 - mySides[r].first;
+				const int right = StageWidth - packWidth + 1 - mySides[r].first;
+
+				for (int pos = left; pos < right; pos++)
+				{
+					auto nextStage = simulator.csetBlocks(myStage, myPackArr[r], pos);
+					simulator.fall(nextStage);
+
+					int score;
+					simulator.next(nextStage, score);
+
+					if (!simulator.isDead(nextStage))
+					{
+						const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+
+						if (hashSet.find(hash) == hashSet.end())
 						{
-							auto nextStage2 = simulator.csetBlocks(nextStage1, packArr2[r2], pos2);
-							simulator.fall(nextStage2);
+							Data data;
+							data.command = Command(pos, r);
+							data.stage = move(nextStage);
+							data.obstacle = myObstacle - score2obstacle(score);
+							data.score = score;
 
-							int score2;
-							simulator.next(nextStage2, score2);
+							hashSet.insert(hash);
 
-							if (!simulator.isDead(nextStage2))
+							const auto eval = Evaluation(data.stage, data.score, myObstacle, Share::getNow() + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
+
+							if (shotJudge(data, score))
 							{
-								if (maxScore < score2)
-								{
-									maxScore = score2;
-									vector<Command> com;
-									com.push_back(Command(pos1, r1));
-									com.push_back(Command(pos2, r2));
-									commands = move(com);
-								}
+								data.evaluation = eval;
+								data.firstEvaluation = data.evaluation;
+								commands.push_back(data);
 							}
+
+							data.evaluation = eval;
+							data.firstEvaluation = data.evaluation;
+
+							allCommands.emplace_back(data);
 						}
 					}
 				}
 			}
 		}
 
-		return{ maxScore,commands };
+		if (!commands.empty())
+		{
+			cerr << "！発火！" << endl;
+			return commands;
+		}
+
+		return allCommands;
 	}
 
-	const Data chainThink(const Data& seed, const chrono::milliseconds& ms) {
+	const Command chainThink(const vector<Data>& commands) {
 
 		const auto& packs = Share::getPacks();
-		const int now = seed.turn;
+		const int now = Share::getNow();
 		const int maxTurn = Share::getTurn();
 
 		const int Turn = 10;
@@ -237,20 +181,23 @@ private:
 
 		Simulator simulator;
 		array<priority_queue<Data>, Turn + 1> qData;
-		//array<set<Hash::Type>, Turn> hashSet;
+		array<set<Hash::Type>, Turn> hashSet;
 
-		qData[0].push(seed);
+		//gccでコンパイルできなかった
+		//qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
+		for (const auto& com : commands) { qData[0].push(com); }
 
-		Timer timer(ms);
+		//gccでコンパイルできなかった
+		//Timer timer(1000ms);
 
+		Timer timer(chrono::milliseconds(1000));
 		timer.start();
 
 		while (!timer)
 		{
-			bool flag = false;
 			for (int t = 0; t < Turn; t++)
 			{
-				const int turn = now + t;
+				const int turn = now + t + 1;
 				if (turn >= maxTurn) break;
 
 				for (int i = 0; i < ChokudaiWidth; i++)
@@ -261,11 +208,13 @@ private:
 					qData[t].pop();
 
 					const auto& command = topData.command;
+					const auto& firstEvaluation = topData.firstEvaluation;
 					const auto& stage = topData.stage;
 					int obstacle = topData.obstacle;
 					const auto& pack = packs[turn].getFullObstacle(obstacle);
 					const auto& packArr = pack.getArray();
 					const auto& sides = pack.getSide();
+					const auto& topScore = topData.score;
 
 					for (int r = 0; r < Rotation; r++)
 					{
@@ -283,34 +232,102 @@ private:
 
 							if (!simulator.isDead(nextStage))
 							{
-								Data data;
-								data.command = command;
-								data.command.emplace(Command(pos, r));
+								const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
 
-								data.stage = move(nextStage);
-								data.obstacle = obstacle - score2obstacle(score);
-								data.evaluation = Evaluation(data.stage, score, obstacle, turn + 1);
+								if (hashSet[t].find(hash) == hashSet[t].end())
+								{
+									Data data;
+									data.command = command;
+									data.stage = move(nextStage);
+									data.obstacle = obstacle - score2obstacle(score);
 
-								qData[t + 1].emplace(data);
+									data.score = topScore + score;
 
-								flag = true;
+									data.evaluation = Evaluation(data.stage, data.score, obstacle, turn + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
+									data.firstEvaluation = firstEvaluation;
+
+									hashSet[t].insert(hash);
+
+									qData[t + 1].emplace(data);
+								}
 							}
 						}
 					}
 
 				}
 			}
-			if (!flag) break;
 		}
 
 		if (!qData[Turn].empty())
 		{
 			const auto& top = qData[Turn].top();
-			return top;
+			lastData = top;
+			//top.evaluation.show();
+			top.firstEvaluation.show();
+			return top.command;
 		}
 
+		lastData = Data();
+
 		cerr << "詰みです" << endl;
-		return Data();
+		return Command();
+	}
+
+	const int getMaxScore(const StageArray& seedStage, const int seedObstacle, const int turn, const int count = 2) {
+
+		Simulator simulator;
+
+		int maxScore = 0;
+		const auto& packs = Share::getPacks();
+
+		queue<pair<StageArray, int>> stages;
+		stages.push({ seedStage,seedObstacle });
+
+		for (int i = 0; i < count; i++)
+		{
+			if (turn + i >= Share::getTurn()) break;
+			queue<pair<StageArray, int>> next;
+
+			while (!stages.empty())
+			{
+				const auto& front = stages.front();
+				stages.pop();
+				int obstacle = front.second;
+
+				const auto& stage = front.first;
+				const auto& pack = packs[turn + i].getFullObstacle(obstacle);
+				const auto& packArr = pack.getArray();
+				const auto& sides = pack.getSide();
+
+				for (int r = 0; r < Rotation; r++)
+				{
+					const int packWidth = sides[r].second - sides[r].first + 1;
+					const int left = 0 - sides[r].first;
+					const int right = StageWidth - packWidth + 1 - sides[r].first;
+
+					for (int pos = left; pos < right; pos++)
+					{
+						auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
+						simulator.fall(nextStage);
+
+						int score;
+						simulator.next(nextStage, score);
+
+						if (!simulator.isDead(nextStage))
+						{
+							maxScore = max(maxScore, score);
+							next.emplace(pair<StageArray, int>(nextStage, obstacle));
+						}
+					}
+
+				}
+
+			}
+
+			stages = move(next);
+		}
+
+		return maxScore;
 	}
 
 };

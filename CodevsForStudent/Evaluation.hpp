@@ -6,16 +6,27 @@ class Evaluation {
 public:
 
 	Evaluation() = default;
-	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn) {
+	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn, const int enMaxScore, const int enTriggerTurn, const int enScore) {
 
 		setTopBlock(stage);
 		evaluationBlockFlat(stage);
-		searchChain(stage, score, obstacle, turn);
+		searchChain(stage, obstacle, turn);
 
-		totalScore += chainNumber[0] * 1000 + chainScore[0];
-		totalScore += chainNumber[1] * 100 + chainScore[1] / 10;
+		totalScore += chainNumber[0] * 100 + chainScore[0];
+		totalScore += chainNumber[1] * 10 + chainScore[1] / 10;
 
 		totalScore -= blockFlatScore * 1000;
+
+		if (score2obstacle(score) >= Share::getEnFreeSpace() * 0.5)
+		{
+			//if (score > enMaxScore)
+			//	totalScore += score * 100;
+			if (score2obstacle(score) >= score2obstacle(enScore - 10))
+				totalScore += score * 100;
+			else
+				totalScore -= score * 100;
+		}
+		totalScore += score;
 
 	}
 
@@ -79,7 +90,7 @@ private:
 		}
 	}
 
-	void searchChain(const StageArray& stage, const int score, const int obstacle, const int turn) {
+	void searchChain(const StageArray& stage, const int obstacle, const int turn) {
 
 		const auto deleteCheck = [](const Point& pos, const StageArray& stage, const int n) {
 
@@ -109,8 +120,8 @@ private:
 			return 1000;
 		};
 
-		const auto nearEval = [](const int range) {
-			const double e = exp(range - 8);
+		const auto nearEval = [](const int range, const int score) {
+			const double e = exp(range - 10);
 			const double r = 1 / (1 + e);
 			return r;
 		};
@@ -118,6 +129,9 @@ private:
 		Simulator simulator;
 
 		const auto blockContainPacks = Share::getBlockContainPacks();
+
+		//一度発火させて、発火後の形をもう一度評価してみる？
+		//発火ブロックがお邪魔で埋まっても発火できるかみてみる？
 
 		for (int n = 1; n < AddScore; n++)
 		{
@@ -134,10 +148,11 @@ private:
 					next[point] = n;
 					int score;
 					int chain = simulator.next(next, score);
-					const double e = nearEval(first);
+					const double e = nearEval(first, score);
 					score = int(e*score);
 					chain = int(e*chain);
 
+					//*
 					if (score > chainScore[0])
 					{
 						chainScore[1] = chainScore[0];
@@ -156,6 +171,12 @@ private:
 					{
 						chainNumber[1] = chain;
 					}
+					/*/
+
+					//2つぐらい候補出してみる？
+					chainScore = max(chainScore, score);
+					chainNumber = max(chainNumber, chain);
+					*/
 				}
 			}
 		}
