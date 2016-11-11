@@ -153,6 +153,7 @@
     <ClInclude Include="AI.hpp" />
     <ClInclude Include="CGrid.hpp" />
     <ClInclude Include="Evaluation.hpp" />
+    <ClInclude Include="Game.hpp" />
     <ClInclude Include="Grid.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Pack.hpp" />

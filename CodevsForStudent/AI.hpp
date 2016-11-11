@@ -67,8 +67,21 @@ private:
 
 		int enObstacle = Share::getEnObstacle();
 		enMaxScore = getMaxScore(Share::getEnStage(), Share::getEnObstacle(), now);
+		int enNoneObstacle = 0;
 
 		enemyData = simulator.getSimulationData(Share::getEnStage(), now);
+
+		{
+			const auto& enStage = Share::getEnStage();
+			for (int y = 0; y < StageHeight; y++)
+			{
+				for (int x = 0; x < StageWidth; x++)
+				{
+					if (enStage[y][x] != ObstacleBlock)
+						enNoneObstacle++;
+				}
+			}
+		}
 
 		//UŒ‚”»’f
 		{
@@ -105,7 +118,7 @@ private:
 
 				if (mySendBlock > enSendBlock)
 				{
-					if (mySendBlock >= Share::getEnFreeSpace() * 0.5)
+					if (mySendBlock >= enNoneObstacle * 0.5)
 					{
 						return true;
 					}

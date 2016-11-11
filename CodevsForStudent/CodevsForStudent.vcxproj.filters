@@ -64,5 +64,8 @@
     <ClInclude Include="Timer.hpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="Game.hpp">
+      <Filter>ソース ファイル\Simulator</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

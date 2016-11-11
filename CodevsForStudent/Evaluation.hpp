@@ -17,16 +17,19 @@ public:
 
 		totalScore -= blockFlatScore * 1000;
 
-		if (score2obstacle(score) >= Share::getEnFreeSpace() * 0.5)
+		if (turn != Share::getNow())
 		{
-			//if (score > enMaxScore)
-			//	totalScore += score * 100;
-			if (score2obstacle(score) >= score2obstacle(enScore - 10))
-				totalScore += score * 100;
-			else
-				totalScore -= score * 100;
+			if (score2obstacle(score) >= noneObstacle * 0.5)
+			{
+				if (score2obstacle(score) >= score2obstacle(enMaxScore))
+					totalScore += score * 150;
+				if (score2obstacle(score) >= score2obstacle(enScore - 10))
+					totalScore += score * 100;
+				else
+					totalScore -= score * 100;
+			}
+			totalScore += score;
 		}
-		totalScore += score;
 
 	}
 
@@ -39,6 +42,7 @@ public:
 private:
 
 	array<int, StageWidth> blockTop;
+	int noneObstacle = 0;
 
 	array<int, 2> chainNumber = {};
 	int chainNumberTrigger = StageHeight;
@@ -62,8 +66,11 @@ private:
 				if (stage[y][x] == EmptyBlock)
 				{
 					blockTop[x] = y;
+					noneObstacle += y + 1;
 					break;
 				}
+				if (stage[y][x] != ObstacleBlock)
+					noneObstacle++;
 			}
 		}
 
