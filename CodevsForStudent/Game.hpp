@@ -10,7 +10,7 @@ public:
 	Game(const StageArray& _stage, const int _obstacle) : stage(_stage), obstacle(_obstacle) {}
 	Game(StageArray&& _stage, const int _obstacle) : obstacle(_obstacle) { stage = move(_stage); }
 
-	void update(const int pos, const PackArray& pack) {
+	void update(const int pos, const int rota, const Pack& pack) {
 
 		dead = false;
 
@@ -28,10 +28,10 @@ public:
 			}
 		}
 
-		setPack(pos, pack);
+		setPack(pos, rota, pack);
 
 		score = 0;
-		chain = 0;
+		chain = 1;
 		int count = 0;
 		while ((count = disBlocks()) > 0)
 		{
@@ -58,6 +58,9 @@ public:
 
 	const int getScore() const { return score; }
 	const int getChain() const { return chain; }
+	const int getObstacle() const { return obstacle; }
+
+	const StageArray& getStage() const { return stage; }
 
 	const bool isDead() const { return dead; }
 
@@ -82,7 +85,9 @@ private:
 	//éŒÇﬂè„
 	array<bool, StageWidth + StageHeight + 3 - 1> diagonalChanged2;
 
-	void setPack(const int pos, const PackArray& pack) {
+	void setPack(const int pos, const int rota, const Pack& pack) {
+
+		const PackArray packArr = pack.getFullObstacle(obstacle).getArray(rota);
 
 		for (int x = 0; x < PackSize; x++)
 		{
@@ -91,9 +96,9 @@ private:
 				int index = blockTop[pos + x];
 				for (int y = PackSize - 1; y >= 0; y--)
 				{
-					if (pack[y][x] != EmptyBlock)
+					if (packArr[y][x] != EmptyBlock)
 					{
-						stage[index][pos + x] = pack[y][0];
+						stage[index][pos + x] = packArr[y][x];
 						setChanged(pos + x, index);
 						index--;
 					}
@@ -117,13 +122,16 @@ private:
 				int index = stage.getHeight() - 1;
 				for (int y = stage.getHeight() - 1; y >= 0; y--)
 				{
-					stage[index][x] = stage[y][x];
-					if (index != y)
+					if (stage[y][x] != EmptyBlock)
 					{
-						stage[y][x] = EmptyBlock;
-						setChanged(x, index);
+						stage[index][x] = stage[y][x];
+						if (index != y)
+						{
+							stage[y][x] = EmptyBlock;
+							setChanged(x, index);
+						}
+						index--;
 					}
-					index--;
 				}
 				blockTop[x] = index;
 			}
@@ -165,7 +173,7 @@ private:
 							}
 							if (add == AddScore)
 							{
-								count++;
+								count += dx;
 								for (int i = 0; i < dx; i++)
 									disFlag[y][x + i] = true;
 							}
@@ -203,7 +211,7 @@ private:
 							}
 							if (add == AddScore)
 							{
-								count++;
+								count += dy;
 								for (int i = 0; i < dy; i++)
 									disFlag[y - i][x] = true;
 							}
@@ -242,10 +250,11 @@ private:
 									else
 										break;
 									p += Point(1, 1);
+									d++;
 								}
 								if (add == AddScore)
 								{
-									count++;
+									count += d;
 									p = pos;
 									for (int i = 0; i < d; i++)
 									{
@@ -265,11 +274,11 @@ private:
 		//éŒÇﬂ2ÇÃÉuÉçÉbÉNíTç∏
 		const auto disD2 = [&]() {
 
-			for (int i = 0; i < (int)diagonalChanged1.size(); i++)
+			for (int i = 0; i < (int)diagonalChanged2.size(); i++)
 			{
-				if (diagonalChanged1[i])
+				if (diagonalChanged2[i])
 				{
-					Point pos(0, i - StageWidth + 1);
+					Point pos(0, i);
 					for (int j = 0; j < StageWidth; j++)
 					{
 						if (inside(pos))
@@ -289,11 +298,12 @@ private:
 									}
 									else
 										break;
-									p += Point(1, 1);
+									p += Point(1, -1);
+									d++;
 								}
 								if (add == AddScore)
 								{
-									count++;
+									count += d;
 									p = pos;
 									for (int i = 0; i < d; i++)
 									{

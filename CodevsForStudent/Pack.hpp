@@ -17,6 +17,11 @@ public:
 		blocks = move(p.blocks);
 		side = move(p.side);
 	}
+	Pack(const PackArray& arr) {
+		blocks[0] = arr;
+		setRota(blocks);
+		setSide();
+	}
 
 	Pack(const Pack& p) = default;
 

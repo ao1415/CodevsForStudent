@@ -30,7 +30,6 @@ public:
 			}
 			totalScore += score;
 		}
-
 	}
 
 	const bool operator<(const Evaluation& e) const { return totalScore < e.totalScore; }

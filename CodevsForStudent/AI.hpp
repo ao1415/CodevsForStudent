@@ -43,11 +43,9 @@ private:
 
 	struct Data {
 		Command command;
-		StageArray stage;
-		int obstacle;
+		Game game;
 		Evaluation evaluation;
 		Evaluation firstEvaluation;
-		int score;
 
 		const bool operator<(const Data& d) const { return evaluation < d.evaluation; }
 	};
@@ -91,9 +89,9 @@ private:
 
 			set<Hash::Type> hashSet;
 
-			const auto& myPack = packs[now].getFullObstacle(myObstacle);
-			const auto& myPackArr = myPack.getArray();
-			const auto& mySides = myPack.getSide();
+			const auto& pack = packs[now];
+			const auto& fullPack = packs[now].getFullObstacle(myObstacle);
+			const auto& sides = fullPack.getSide();
 
 			//攻撃判定関数
 			const auto shotJudge = [&](const Data& data, const int myScore) {
@@ -130,46 +128,35 @@ private:
 
 			for (int r = 0; r < Rotation; r++)
 			{
-				const int packWidth = mySides[r].second - mySides[r].first + 1;
-				const int left = 0 - mySides[r].first;
-				const int right = StageWidth - packWidth + 1 - mySides[r].first;
+				const int packWidth = sides[r].second - sides[r].first + 1;
+				const int left = 0 - sides[r].first;
+				const int right = StageWidth - packWidth + 1 - sides[r].first;
 
 				for (int pos = left; pos < right; pos++)
 				{
-					auto nextStage = simulator.csetBlocks(myStage, myPackArr[r], pos);
-					simulator.fall(nextStage);
+					Game game(myStage, Share::getMyObstacle());
 
-					int score;
-					simulator.next(nextStage, score);
+					game.update(pos, r, pack);
 
-					if (!simulator.isDead(nextStage))
+					if (!game.isDead())
 					{
-						const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+						Data data;
+						data.command = Command(pos, r);
+						data.game = move(game);
 
-						if (hashSet.find(hash) == hashSet.end())
+						const auto eval = Evaluation(data.game.getStage(), data.game.getScore(), data.game.getObstacle(), Share::getNow() + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
+
+						if (shotJudge(data, data.game.getScore()))
 						{
-							Data data;
-							data.command = Command(pos, r);
-							data.stage = move(nextStage);
-							data.obstacle = myObstacle - score2obstacle(score);
-							data.score = score;
-
-							hashSet.insert(hash);
-
-							const auto eval = Evaluation(data.stage, data.score, myObstacle, Share::getNow() + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
-
-							if (shotJudge(data, score))
-							{
-								data.evaluation = eval;
-								data.firstEvaluation = data.evaluation;
-								commands.push_back(data);
-							}
-
 							data.evaluation = eval;
 							data.firstEvaluation = data.evaluation;
-
-							allCommands.emplace_back(data);
+							commands.push_back(data);
 						}
+
+						data.evaluation = eval;
+						data.firstEvaluation = data.evaluation;
+
+						allCommands.emplace_back(data);
 					}
 				}
 			}
@@ -193,16 +180,9 @@ private:
 		const int Turn = 10;
 		const int ChokudaiWidth = 1;
 
-		Simulator simulator;
 		array<priority_queue<Data>, Turn + 1> qData;
-		array<set<Hash::Type>, Turn> hashSet;
 
-		//gccでコンパイルできなかった
-		//qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
 		for (const auto& com : commands) { qData[0].push(com); }
-
-		//gccでコンパイルできなかった
-		//Timer timer(1000ms);
 
 		Timer timer(chrono::milliseconds(1000));
 		timer.start();
@@ -223,12 +203,13 @@ private:
 
 					const auto& command = topData.command;
 					const auto& firstEvaluation = topData.firstEvaluation;
-					const auto& stage = topData.stage;
-					int obstacle = topData.obstacle;
-					const auto& pack = packs[turn].getFullObstacle(obstacle);
-					const auto& packArr = pack.getArray();
-					const auto& sides = pack.getSide();
-					const auto& topScore = topData.score;
+					const auto& game = topData.game;
+					const auto& score = game.getScore();
+
+					int obstacle = game.getObstacle();
+					const auto& pack = packs[turn];
+					const auto& fullPack = pack.getFullObstacle(obstacle);
+					const auto& sides = fullPack.getSide();
 
 					for (int r = 0; r < Rotation; r++)
 					{
@@ -238,32 +219,20 @@ private:
 
 						for (int pos = left; pos < right; pos++)
 						{
-							auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
-							simulator.fall(nextStage);
+							Game nGame(game.getStage(), game.getObstacle());
 
-							int score;
-							simulator.next(nextStage, score);
+							nGame.update(pos, r, packs[turn]);
 
-							if (!simulator.isDead(nextStage))
+							if (!nGame.isDead())
 							{
-								const auto hash = Hash::FNVa(nextStage.data(), sizeof(StageArray));
+								Data data;
+								data.command = command;
+								data.game = move(nGame);
 
-								if (hashSet[t].find(hash) == hashSet[t].end())
-								{
-									Data data;
-									data.command = command;
-									data.stage = move(nextStage);
-									data.obstacle = obstacle - score2obstacle(score);
+								data.evaluation = Evaluation(data.game.getStage(), score + data.game.getScore(), data.game.getObstacle(), turn + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
+								data.firstEvaluation = firstEvaluation;
 
-									data.score = topScore + score;
-
-									data.evaluation = Evaluation(data.stage, data.score, obstacle, turn + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
-									data.firstEvaluation = firstEvaluation;
-
-									hashSet[t].insert(hash);
-
-									qData[t + 1].emplace(data);
-								}
+								qData[t + 1].emplace(data);
 							}
 						}
 					}
@@ -276,7 +245,7 @@ private:
 		{
 			const auto& top = qData[Turn].top();
 			lastData = top;
-			//top.evaluation.show();
+			top.evaluation.show();
 			top.firstEvaluation.show();
 			return top.command;
 		}
@@ -289,29 +258,27 @@ private:
 
 	const int getMaxScore(const StageArray& seedStage, const int seedObstacle, const int turn, const int count = 2) {
 
-		Simulator simulator;
-
 		int maxScore = 0;
 		const auto& packs = Share::getPacks();
 
-		queue<pair<StageArray, int>> stages;
-		stages.push({ seedStage,seedObstacle });
+		queue<Game> stages;
+		stages.emplace(Game(seedStage, seedObstacle));
 
 		for (int i = 0; i < count; i++)
 		{
 			if (turn + i >= Share::getTurn()) break;
-			queue<pair<StageArray, int>> next;
+			queue<Game> next;
 
 			while (!stages.empty())
 			{
-				const auto& front = stages.front();
+				const auto& game = stages.front();
 				stages.pop();
-				int obstacle = front.second;
 
-				const auto& stage = front.first;
-				const auto& pack = packs[turn + i].getFullObstacle(obstacle);
-				const auto& packArr = pack.getArray();
-				const auto& sides = pack.getSide();
+				const auto& stage = game.getStage();
+				int obstacle = game.getObstacle();
+				const auto& pack = packs[turn + i];
+				const auto& fullPack = pack.getFullObstacle(obstacle);
+				const auto& sides = fullPack.getSide();
 
 				for (int r = 0; r < Rotation; r++)
 				{
@@ -321,16 +288,14 @@ private:
 
 					for (int pos = left; pos < right; pos++)
 					{
-						auto nextStage = simulator.csetBlocks(stage, packArr[r], pos);
-						simulator.fall(nextStage);
+						Game nGame(stage, game.getObstacle());
 
-						int score;
-						simulator.next(nextStage, score);
+						nGame.update(pos, r, pack);
 
-						if (!simulator.isDead(nextStage))
+						if (!nGame.isDead())
 						{
-							maxScore = max(maxScore, score);
-							next.emplace(pair<StageArray, int>(nextStage, obstacle));
+							maxScore = max(maxScore, nGame.getScore());
+							next.emplace(nGame);
 						}
 					}
 
