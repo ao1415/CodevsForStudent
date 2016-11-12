@@ -2,6 +2,7 @@
 
 #include "Evaluation.hpp"
 #include "Simulator.hpp"
+#include "Game.hpp"
 
 class AI {
 public:
