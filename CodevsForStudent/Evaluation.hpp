@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Simulator.hpp"
+#include "Game.hpp"
 
 class Evaluation {
 public:
@@ -17,19 +18,16 @@ public:
 
 		totalScore -= blockFlatScore * 1000;
 
-		if (turn != Share::getNow())
+		if (score2obstacle(score) >= Share::getEnFreeSpace() * 0.5)
 		{
-			if (score2obstacle(score) >= noneObstacle * 0.5)
-			{
-				if (score2obstacle(score) >= score2obstacle(enMaxScore))
-					totalScore += score * 150;
-				if (score2obstacle(score) >= score2obstacle(enScore - 10))
-					totalScore += score * 100;
-				else
-					totalScore -= score * 100;
-			}
-			totalScore += score;
+			//if (score > enMaxScore)
+			//	totalScore += score * 100;
+			if (score2obstacle(score) >= score2obstacle(enScore - 10))
+				totalScore += score * 100;
+			//else
+			//	totalScore -= score * 100;
 		}
+		totalScore += score;
 	}
 
 	const bool operator<(const Evaluation& e) const { return totalScore < e.totalScore; }
@@ -41,7 +39,6 @@ public:
 private:
 
 	array<int, StageWidth> blockTop;
-	int noneObstacle = 0;
 
 	array<int, 2> chainNumber = {};
 	int chainNumberTrigger = StageHeight;
@@ -65,11 +62,8 @@ private:
 				if (stage[y][x] == EmptyBlock)
 				{
 					blockTop[x] = y;
-					noneObstacle += y + 1;
 					break;
 				}
-				if (stage[y][x] != ObstacleBlock)
-					noneObstacle++;
 			}
 		}
 
@@ -132,7 +126,7 @@ private:
 			return r;
 		};
 
-		Simulator simulator;
+		//Simulator simulator;
 
 		const auto blockContainPacks = Share::getBlockContainPacks();
 
@@ -152,8 +146,14 @@ private:
 					auto next = stage;
 
 					next[point] = n;
-					int score;
-					int chain = simulator.next(next, score);
+					//int score;
+					//int chain = simulator.next(next, score);
+					Game game(move(next), 0);
+					game.update(x);
+
+					int chain = game.getChain();
+					int score = game.getScore();
+
 					const double e = nearEval(first, score);
 					score = int(e*score);
 					chain = int(e*chain);

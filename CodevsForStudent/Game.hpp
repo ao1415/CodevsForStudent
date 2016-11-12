@@ -10,12 +10,11 @@ public:
 	Game(const StageArray& _stage, const int _obstacle) : stage(_stage), obstacle(_obstacle) {}
 	Game(StageArray&& _stage, const int _obstacle) : obstacle(_obstacle) { stage = move(_stage); }
 
-	void update(const int pos, const int rota, const Pack& pack) {
-
-		dead = false;
+	void update(const int pos, const PackArray& packArr) {
 
 		changedClear();
 
+		blockTop.fill(0);
 		for (int x = 0; x < StageWidth; x++)
 		{
 			for (int y = stage.getHeight() - 1; y >= 0; y--)
@@ -28,7 +27,7 @@ public:
 			}
 		}
 
-		setPack(pos, rota, pack);
+		setPack(pos, packArr);
 
 		score = 0;
 		chain = 1;
@@ -56,13 +55,44 @@ public:
 
 	}
 
-	const int getScore() const { return score; }
-	const int getChain() const { return chain; }
-	const int getObstacle() const { return obstacle; }
+	void update(const int pos) {
 
-	const StageArray& getStage() const { return stage; }
+		changedClear();
 
-	const bool isDead() const { return dead; }
+		blockTop.fill(0);
+		for (int x = 0; x < StageWidth; x++)
+		{
+			for (int y = stage.getHeight() - 1; y >= 0; y--)
+			{
+				if (stage[y][x] == EmptyBlock)
+				{
+					blockTop[x] = y;
+					break;
+				}
+			}
+		}
+
+		setChanged(pos, blockTop[pos] + 1);
+
+		score = 0;
+		chain = 1;
+		int count = 0;
+		while ((count = disBlocks()) > 0)
+		{
+			score += (int)pow(1.3, chain)*(int)(count / 2);
+			chain++;
+			fallBlocks();
+		}
+
+	}
+
+	inline const int getScore() const { return score; }
+	inline const int getChain() const { return chain; }
+	inline const int getObstacle() const { return obstacle; }
+
+	inline const StageArray& getStage() const { return stage; }
+
+	inline const bool isDead() const { return dead; }
 
 private:
 
@@ -85,9 +115,7 @@ private:
 	//斜め上
 	array<bool, StageWidth + StageHeight + 3 - 1> diagonalChanged2;
 
-	void setPack(const int pos, const int rota, const Pack& pack) {
-
-		const PackArray packArr = pack.getFullObstacle(obstacle).getArray(rota);
+	void setPack(const int pos, const PackArray& packArr) {
 
 		for (int x = 0; x < PackSize; x++)
 		{
@@ -147,13 +175,13 @@ private:
 		int count = 0;
 
 		//横のブロック探査
-		const auto disV = [&]() {
+		{
 
 			for (int y = 0; y < stage.getHeight(); y++)
 			{
 				if (verticalChanged[y])
 				{
-					for (int x = 0; x < StageWidth; x++)
+					for (int x = 0; x < StageWidth - 1; x++)
 					{
 						if (stage[y][x] != EmptyBlock && stage[y][x] != ObstacleBlock)
 						{
@@ -182,16 +210,16 @@ private:
 				}
 			}
 
-		};
+		}
 
 		//縦のブロック探査
-		const auto disH = [&]() {
+		{
 
 			for (int x = 0; x < StageWidth; x++)
 			{
 				if (horizontalChanged[x])
 				{
-					for (int y = stage.getHeight() - 1; y > blockTop[x]; y--)
+					for (int y = stage.getHeight() - 1; y > blockTop[x] + 1; y--)
 					{
 						if (stage[y][x] != ObstacleBlock)
 						{
@@ -220,61 +248,68 @@ private:
 				}
 			}
 
-		};
+		}
 
 		//斜め1のブロック探査
-		const auto disD1 = [&]() {
+		{
 
-			for (int i = 0; i < (int)diagonalChanged1.size(); i++)
+			for (int i = 1; i < (int)diagonalChanged1.size() - 1; i++)
 			{
 				if (diagonalChanged1[i])
 				{
 					Point pos(0, i - StageWidth + 1);
-					for (int j = 0; j < StageWidth; j++)
+					for (int j = 0; j < StageWidth - 1; j++)
 					{
 						if (inside(pos))
 						{
-							if (stage[pos] != EmptyBlock && stage[pos] != ObstacleBlock)
+							if (stage[pos.y][pos.x] != EmptyBlock && stage[pos.y][pos.x] != ObstacleBlock)
 							{
-								int add = stage[pos];
+								int add = stage[pos.y][pos.x];
 								int d = 1;
-								Point p = pos + Point(1, 1);
+								//Point p = pos + Point(1, 1);
+								int x = pos.x + 1;
+								int y = pos.y + 1;
 								while (add < AddScore)
 								{
-									if (inside(p))
+									if (inside(x, y))
 									{
-										if (stage[p] == EmptyBlock || stage[p] == ObstacleBlock)
+										if (stage[y][x] == EmptyBlock || stage[y][x] == ObstacleBlock)
 											break;
-										add += stage[p];
+										add += stage[y][x];
 									}
 									else
 										break;
-									p += Point(1, 1);
+									x += 1;
+									y += 1;
 									d++;
 								}
 								if (add == AddScore)
 								{
 									count += d;
-									p = pos;
+									x = pos.x;
+									y = pos.y;
 									for (int i = 0; i < d; i++)
 									{
-										disFlag[p.y][p.x] = true;
-										p += Point(1, 1);
+										disFlag[y][x] = true;
+										x += 1;
+										y += 1;
 									}
 								}
 							}
 						}
-						pos += Point(1, 1);
+						pos.x += 1;
+						pos.y += 1;
+						if (pos.y >= stage.getHeight()) break;
 					}
 				}
 			}
 
-		};
+		}
 
 		//斜め2のブロック探査
-		const auto disD2 = [&]() {
+		{
 
-			for (int i = 0; i < (int)diagonalChanged2.size(); i++)
+			for (int i = 1; i < (int)diagonalChanged2.size() - 1; i++)
 			{
 				if (diagonalChanged2[i])
 				{
@@ -283,47 +318,49 @@ private:
 					{
 						if (inside(pos))
 						{
-							if (stage[pos] != EmptyBlock && stage[pos] != ObstacleBlock)
+							if (stage[pos.y][pos.x] != EmptyBlock && stage[pos.y][pos.x] != ObstacleBlock)
 							{
-								int add = stage[pos];
+								int add = stage[pos.y][pos.x];
 								int d = 1;
-								Point p = pos + Point(1, -1);
+								//Point p = pos + Point(1, -1);
+								int x = pos.x + 1;
+								int y = pos.y - 1;
 								while (add < AddScore)
 								{
-									if (inside(p))
+									if (inside(x, y))
 									{
-										if (stage[p] == EmptyBlock || stage[p] == ObstacleBlock)
+										if (stage[y][x] == EmptyBlock || stage[y][x] == ObstacleBlock)
 											break;
-										add += stage[p];
+										add += stage[y][x];
 									}
 									else
 										break;
-									p += Point(1, -1);
+									x += 1;
+									y -= 1;
 									d++;
 								}
 								if (add == AddScore)
 								{
 									count += d;
-									p = pos;
+									x = pos.x;
+									y = pos.y;
 									for (int i = 0; i < d; i++)
 									{
-										disFlag[p.y][p.x] = true;
-										p += Point(1, -1);
+										disFlag[y][x] = true;
+										x += 1;
+										y -= 1;
 									}
 								}
 							}
 						}
-						pos += Point(1, -1);
+						pos.x += 1;
+						pos.y -= 1;
+						if (pos.y < 0) break;
 					}
 				}
 			}
 
-		};
-
-		disV();
-		disH();
-		disD1();
-		disD2();
+		}
 
 		horizontalChanged.fill(false);
 		for (int y = 0; y < (int)disFlag.size(); y++)
@@ -332,7 +369,7 @@ private:
 			{
 				for (int x = 0; x < StageWidth; x++)
 				{
-					if (disFlag[y][x])
+					if (disFlag[y].test(x))
 					{
 						stage[y][x] = EmptyBlock;
 						horizontalChanged[x] = true;

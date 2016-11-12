@@ -66,21 +66,8 @@ private:
 
 		int enObstacle = Share::getEnObstacle();
 		enMaxScore = getMaxScore(Share::getEnStage(), Share::getEnObstacle(), now);
-		int enNoneObstacle = 0;
 
 		enemyData = simulator.getSimulationData(Share::getEnStage(), now);
-
-		{
-			const auto& enStage = Share::getEnStage();
-			for (int y = 0; y < StageHeight; y++)
-			{
-				for (int x = 0; x < StageWidth; x++)
-				{
-					if (enStage[y][x] != ObstacleBlock)
-						enNoneObstacle++;
-				}
-			}
-		}
 
 		//UŒ‚”»’f
 		{
@@ -91,6 +78,7 @@ private:
 
 			const auto& pack = packs[now];
 			const auto& fullPack = packs[now].getFullObstacle(myObstacle);
+			const auto& fullPackArr = fullPack.getArray();
 			const auto& sides = fullPack.getSide();
 
 			//UŒ‚”»’èŠÖ”
@@ -117,7 +105,7 @@ private:
 
 				if (mySendBlock > enSendBlock)
 				{
-					if (mySendBlock >= enNoneObstacle * 0.5)
+					if (mySendBlock >= Share::getEnFreeSpace() * 0.5)
 					{
 						return true;
 					}
@@ -134,9 +122,9 @@ private:
 
 				for (int pos = left; pos < right; pos++)
 				{
-					Game game(myStage, Share::getMyObstacle());
+					Game game(myStage, myObstacle);
 
-					game.update(pos, r, pack);
+					game.update(pos, fullPackArr[r]);
 
 					if (!game.isDead())
 					{
@@ -144,14 +132,16 @@ private:
 						data.command = Command(pos, r);
 						data.game = move(game);
 
-						const auto eval = Evaluation(data.game.getStage(), data.game.getScore(), data.game.getObstacle(), Share::getNow() + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
+						const auto eval = Evaluation(data.game.getStage(), data.game.getScore(), myObstacle, Share::getNow() + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
 
+						/*
 						if (shotJudge(data, data.game.getScore()))
 						{
 							data.evaluation = eval;
 							data.firstEvaluation = data.evaluation;
 							commands.push_back(data);
 						}
+						*/
 
 						data.evaluation = eval;
 						data.firstEvaluation = data.evaluation;
@@ -161,13 +151,13 @@ private:
 				}
 			}
 		}
-
+		/*
 		if (!commands.empty())
 		{
 			cerr << "I”­‰ÎI" << endl;
 			return commands;
 		}
-
+		*/
 		return allCommands;
 	}
 
@@ -209,6 +199,7 @@ private:
 					int obstacle = game.getObstacle();
 					const auto& pack = packs[turn];
 					const auto& fullPack = pack.getFullObstacle(obstacle);
+					const auto& fullPackArr = fullPack.getArray();
 					const auto& sides = fullPack.getSide();
 
 					for (int r = 0; r < Rotation; r++)
@@ -219,9 +210,9 @@ private:
 
 						for (int pos = left; pos < right; pos++)
 						{
-							Game nGame(game.getStage(), game.getObstacle());
+							Game nGame(game.getStage(), obstacle);
 
-							nGame.update(pos, r, packs[turn]);
+							nGame.update(pos, fullPackArr[r]);
 
 							if (!nGame.isDead())
 							{
@@ -229,7 +220,7 @@ private:
 								data.command = command;
 								data.game = move(nGame);
 
-								data.evaluation = Evaluation(data.game.getStage(), score + data.game.getScore(), data.game.getObstacle(), turn + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
+								data.evaluation = Evaluation(data.game.getStage(), score + data.game.getScore(), obstacle, turn + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
 								data.firstEvaluation = firstEvaluation;
 
 								qData[t + 1].emplace(data);
@@ -247,6 +238,10 @@ private:
 			lastData = top;
 			top.evaluation.show();
 			top.firstEvaluation.show();
+			int count = 0;
+			for (const auto& q : qData)
+				count += (int)q.size();
+			cerr << count << endl;
 			return top.command;
 		}
 
@@ -278,6 +273,7 @@ private:
 				int obstacle = game.getObstacle();
 				const auto& pack = packs[turn + i];
 				const auto& fullPack = pack.getFullObstacle(obstacle);
+				const auto& fullPackArr = fullPack.getArray();
 				const auto& sides = fullPack.getSide();
 
 				for (int r = 0; r < Rotation; r++)
@@ -288,9 +284,9 @@ private:
 
 					for (int pos = left; pos < right; pos++)
 					{
-						Game nGame(stage, game.getObstacle());
+						Game nGame(stage, obstacle);
 
-						nGame.update(pos, r, pack);
+						nGame.update(pos, fullPackArr[r]);
 
 						if (!nGame.isDead())
 						{
