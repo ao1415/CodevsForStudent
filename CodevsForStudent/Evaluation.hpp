@@ -6,46 +6,50 @@ class Evaluation {
 public:
 
 	Evaluation() = default;
-	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn, const int triggerTurn) {
+	Evaluation(const StageArray& stage, const int score, const int obstacle, const int turn, const int enMaxScore, const int enTriggerTurn, const int enScore) {
 
 		setTopBlock(stage);
-		searchChain(stage, score, obstacle, turn);
+		evaluationBlockFlat(stage);
+		searchChain(stage, obstacle, turn);
 
-		totalScore += chainNumber * 100 + chainScore;
+		totalScore += chainNumber[0] * 100 + chainScore[0];
+		totalScore += chainNumber[1] * 10 + chainScore[1] / 10;
 
-		const auto nearEval = [&](const int range) {
-			if (range == 0) { attackFlag = true; return 1.0; }
-			if (range == 1) { attackFlag = true; return 0.8; }
-			if (range == 2) { attackFlag = true; return 0.5; }
-			return -2.0;
-		};
-		const int r = abs(triggerTurn - turn);
+		totalScore -= blockFlatScore * 1000;
 
-		totalScore += int(nearEval(r) * score * 50);
+		if (score2obstacle(score) >= Share::getEnFreeSpace() * 0.5)
+		{
+			//if (score > enMaxScore)
+			//	totalScore += score * 100;
+			if (score2obstacle(score) >= score2obstacle(enScore - 10))
+				totalScore += score * 100;
+			else
+				totalScore -= score * 100;
+		}
+		totalScore += score;
 
 	}
 
 	const bool operator<(const Evaluation& e) const { return totalScore < e.totalScore; }
 
 	void show() const {
-		cerr << "連鎖:" << tChain << ",スコア:" << tScore << endl;
+		cerr << "連鎖:" << chainNumber[0] << ",スコア:" << chainScore[0] << endl;
 	}
-
-	const int getScore() const { return tScore; }
-	const bool attack() const { return attackFlag; }
 
 private:
 
 	array<int, StageWidth> blockTop;
 
-	int chainNumber = 0;
-	int chainScore = 0;
+	array<int, 2> chainNumber = {};
+	int chainNumberTrigger = StageHeight;
+	int chainNumberTriggerRange = INT32_MAX;
+	array<int, 2> chainScore = {};
+	int chainScoreTrigger = StageHeight;
+	int chainScoreTriggerRange = INT32_MAX;
 
-	int tChain = 0;
-	int tScore = 0;
+	int blockFlatScore = 0;
+
 	int totalScore = 0;
-
-	bool attackFlag = false;
 
 	void setTopBlock(const StageArray& stage) {
 
@@ -65,7 +69,28 @@ private:
 
 	}
 
-	void searchChain(const StageArray& stage, const int score, const int obstacle, const int turn) {
+	void evaluationBlockFlat(const StageArray& stage) {
+
+		const int sub = 8;
+
+		for (int x = 0; x < (int)blockTop.size(); x++)
+		{
+			const int l = ((x - 1 >= 0) ? blockTop[x - 1] : 3);
+			const int r = ((x + 1 < (int)blockTop.size()) ? blockTop[x + 1] : 3);
+
+			const int lsub = blockTop[x] - l;
+			const int rsub = blockTop[x] - r;
+
+			if (lsub >= sub && rsub >= sub)
+				blockFlatScore += max(lsub, rsub) - sub + 1;
+
+			if (lsub <= -sub && rsub <= -sub)
+				blockFlatScore += -min(lsub, rsub) - sub + 1;
+
+		}
+	}
+
+	void searchChain(const StageArray& stage, const int obstacle, const int turn) {
 
 		const auto deleteCheck = [](const Point& pos, const StageArray& stage, const int n) {
 
@@ -95,7 +120,7 @@ private:
 			return 1000;
 		};
 
-		const auto nearEval = [](const int range) {
+		const auto nearEval = [](const int range, const int score) {
 			const double e = exp(range - 10);
 			const double r = 1 / (1 + e);
 			return r;
@@ -103,48 +128,59 @@ private:
 
 		Simulator simulator;
 
-		const auto packs = Share::getPacks();
 		const auto blockContainPacks = Share::getBlockContainPacks();
+
+		//一度発火させて、発火後の形をもう一度評価してみる？
+		//発火ブロックがお邪魔で埋まっても発火できるかみてみる？
 
 		for (int n = 1; n < AddScore; n++)
 		{
 			int first = find_blockTurn(n, blockContainPacks, turn) - turn;
 
-			const double e = nearEval(first);
-
 			for (int x = 0; x < stage.getWidth(); x++)
 			{
 				const Point point(x, blockTop[x]);
 
-				if (first + turn < Share::getTurn())
+				if (deleteCheck(point, stage, n))
 				{
-					if (deleteCheck(point, stage, n))
+					auto next = stage;
+
+					next[point] = n;
+					int score;
+					int chain = simulator.next(next, score);
+					const double e = nearEval(first, score);
+					score = int(e*score);
+					chain = int(e*chain);
+
+					//*
+					if (score > chainScore[0])
 					{
-						auto next = stage;
-
-						next[point] = n;
-
-						const auto data = simulator.next(next);
-						int score = get<0>(data);
-						int chain = get<1>(data);
-
-						const int eScore = int(e*score);
-						const int eChain = int(e*chain);
-
-						if (eScore > chainScore)
-						{
-							tScore = score;
-							chainScore = eScore;
-						}
-						if (eChain > chainNumber)
-						{
-							tChain = chain;
-							chainNumber = eChain;
-						}
+						chainScore[1] = chainScore[0];
+						chainScore[0] = score;
 					}
+					else if (score > chainScore[1])
+					{
+						chainScore[1] = score;
+					}
+					if (chain > chainNumber[0])
+					{
+						chainNumber[1] = chainNumber[0];
+						chainNumber[0] = chain;
+					}
+					else if (chain > chainNumber[1])
+					{
+						chainNumber[1] = chain;
+					}
+					/*/
+
+					//2つぐらい候補出してみる？
+					chainScore = max(chainScore, score);
+					chainNumber = max(chainNumber, chain);
+					*/
 				}
 			}
 		}
+
 	}
 
 };
