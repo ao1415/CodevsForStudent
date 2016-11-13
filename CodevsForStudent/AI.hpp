@@ -58,7 +58,7 @@ private:
 
 	const vector<Data> attackThink() {
 
-		vector<Data> commands;
+		//vector<Data> commands;
 		vector<Data> allCommands;
 		Simulator simulator;
 
@@ -143,14 +143,14 @@ private:
 							hashSet.insert(hash);
 
 							const auto eval = Evaluation(data.stage, data.score, myObstacle, Share::getNow() + 1, enemyData.maxScore, enemyData.maxScoreTurn, enMaxScore);
-
+							/*
 							if (shotJudge(data, score))
 							{
 								data.evaluation = eval;
 								data.firstEvaluation = data.evaluation;
 								commands.push_back(data);
 							}
-
+							*/
 							data.evaluation = eval;
 							data.firstEvaluation = data.evaluation;
 
@@ -160,13 +160,13 @@ private:
 				}
 			}
 		}
-
+		/*
 		if (!commands.empty())
 		{
 			cerr << "！発火！" << endl;
 			return commands;
 		}
-
+		*/
 		return allCommands;
 	}
 
@@ -190,7 +190,7 @@ private:
 		//gccでコンパイルできなかった
 		//Timer timer(1000ms);
 
-		Timer timer(chrono::milliseconds(1000));
+		Timer timer(chrono::milliseconds(1500));
 		timer.start();
 
 		while (!timer)
