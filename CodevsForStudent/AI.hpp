@@ -190,7 +190,7 @@ private:
 		//gcc‚ÅƒRƒ“ƒpƒCƒ‹‚Å‚«‚È‚©‚Á‚½
 		//Timer timer(1000ms);
 
-		Timer timer(chrono::milliseconds(1500));
+		Timer timer(chrono::milliseconds(1800));
 		timer.start();
 
 		while (!timer)
