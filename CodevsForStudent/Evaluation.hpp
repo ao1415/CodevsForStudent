@@ -94,16 +94,86 @@ private:
 
 		const auto deleteCheck = [](const Point& pos, const StageArray& stage, const int n) {
 
-			const Point direction[] = { Point(-1,-1),Point(-1,1),Point(-1,0),Point(1,0),Point(1,-1),Point(0,-1),Point(1,-1) };
-			for (const auto& dire : direction)
+			for (int xy = 0; xy < StageWidth; xy++)
 			{
-				int add = n;
-				Point p = pos;
+				const int m = min(pos.x, pos.y);
+				int px = pos.x - m + xy;
+				int py = pos.y - m + xy;
+
+				if (!(px < StageWidth && py < StageHeight + 3)) break;
+				int add = stage[py][px];
+				if (add == EmptyBlock) continue;
+
+				int d = 1;
 				while (add < AddScore)
 				{
-					p += dire;
-					if (inside(p) && stage[p] != EmptyBlock) add += stage[p];
+					if (px + d < StageWidth && py + d < StageHeight + 3)
+					{
+						if (stage[py + d][px + d] != EmptyBlock) add += stage[py + d][px + d];
+						else break;
+					}
 					else break;
+					d++;
+				}
+
+				if (add == AddScore)
+					return true;
+			}
+
+			for (int xy = 0; xy < StageWidth; xy++)
+			{
+				const int m = min(pos.x, StageHeight + 2 - pos.y);
+				int px = pos.x - m + xy;
+				int py = pos.y + StageHeight + 2 - m - xy;
+
+				if (!(px < StageWidth && py >= 0)) break;
+				int add = stage[py][px];
+				if (add == EmptyBlock) continue;
+
+				int d = 1;
+				while (add < AddScore)
+				{
+					if (px + d < StageWidth && py - d >= 0)
+					{
+						if (stage[py - d][px + d] != EmptyBlock) add += stage[py - d][px + d];
+						else break;
+					}
+					else break;
+					d++;
+				}
+
+				if (add == AddScore)
+					return true;
+			}
+
+			for (int x = 0; x < StageWidth; x++)
+			{
+				int add = stage[pos.y][x];
+				if (add == EmptyBlock) continue;
+
+				int dx = 1;
+				while (add < AddScore)
+				{
+					if (x + dx < StageWidth && stage[pos.y][x + dx] != EmptyBlock) add += stage[pos.y][x + dx];
+					else break;
+					dx++;
+				}
+
+				if (add == AddScore)
+					return true;
+			}
+
+			for (int y = 0; y < StageHeight + 3; y++)
+			{
+				int add = stage[y][pos.x];
+				if (add == EmptyBlock) continue;
+
+				int dy = 1;
+				while (add < AddScore)
+				{
+					if (y + dy < StageHeight + 3 && stage[y + dy][pos.x] != EmptyBlock) add += stage[y + dy][pos.x];
+					else break;
+					dy++;
 				}
 
 				if (add == AddScore)
@@ -141,11 +211,11 @@ private:
 			{
 				const Point point(x, blockTop[x]);
 
-				if (deleteCheck(point, stage, n))
-				{
-					auto next = stage;
+				auto next = stage;
+				next[point] = n;
 
-					next[point] = n;
+				if (deleteCheck(point, next, n))
+				{
 					int score;
 					int chain = simulator.next(next, score);
 					const double e = nearEval(first, score);
