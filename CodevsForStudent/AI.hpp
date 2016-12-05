@@ -8,20 +8,18 @@ public:
 
 	const string think() {
 
-		//‘O”ј•”•Є‚ЕЃAЌUЊ‚‚·‚й‚©‚З‚¤‚©‚М”»’f‚рЌs‚¤
-		//ЌUЊ‚”»’f‚Й‚Н’TЌх‚рЌs‚н‚ёЃA1Ћџ•€–К‚М‚Э‚Е”»’f‚рЌs‚¤
-		//ЌUЊ‚‚·‚йЏкЌ‡‚Й‚НЌUЊ‚‰В”\‚Иѓpѓ^Ѓ[ѓ“‚рЏ‘‚«Џo‚µЃAЋџ‚Й“n‚·
+		//е‰ЌеЌЉйѓЁе€†гЃ§гЂЃж”»ж’ѓгЃ™г‚‹гЃ‹гЃ©гЃ†гЃ‹гЃ®е€¤ж–­г‚’иЎЊгЃ†
+		//ж”»ж’ѓе€¤ж–­гЃ«гЃЇжЋўзґўг‚’иЎЊг‚ЏгЃљгЂЃ1ж¬Ўи­њйќўгЃ®гЃїгЃ§е€¤ж–­г‚’иЎЊгЃ†
 
-		//Њг”ј•”•Є‚ЕЃAѓuѓЌѓbѓN‚М’u‚«•ы‚рЊ€‚Я‚йЃB
-		//’TЌё‚рЌs‚ўЃA‚И‚й‚Ч‚­AЌЅђ”‚р‘ќ‚в‚·
-		//ѓpѓ^Ѓ[ѓ“‚Є“n‚і‚к‚Д‚ў‚йЏкЌ‡ЃA‚»‚Мѓpѓ^Ѓ[ѓ“‚©‚з’TЌё‚·‚й
-		//AЌЅ‚Н‚И‚й‚Ч‚­2ЊВ‚©3ЊВ‚МѓuѓЌѓbѓN‚ЕЌs‚¤ЃB
+		//еѕЊеЌЉйѓЁе€†гЃ§гЂЃгѓ–гѓ­гѓѓг‚ЇгЃ®зЅ®гЃЌж–№г‚’ж±єг‚Ѓг‚‹гЂ‚
+		//жЋўжџ»г‚’иЎЊгЃ„гЂЃгЃЄг‚‹гЃ№гЃЏйЂЈйЋ–ж•°г‚’еў—г‚„гЃ™
 
-		//‹ГЋ‹‚М‰ь—З‚рЌs‚¤
-		//–{“–‚Й‘Е‚Б‚Д‚а‘еЏд•v‚©
-		//AЌЅ‚МђL‚С‚Н‚З‚¤‚И‚М‚©
-		//‚ЁЋЧ–‚‚Ми‡’l‚М•П“®
-		//‚ЁЋЧ–‚‘О‰ћ‚Ми‡’l‚М•П“®
+		//TODO
+		//е‡ќи¦–гЃ®ж”№и‰Їг‚’иЎЊгЃ†
+		//жњ¬еЅ“гЃ«ж‰“гЃЈгЃ¦г‚‚е¤§дё€е¤«гЃ‹
+		//йЂЈйЋ–гЃ®дјёгЃігЃЇгЃ©гЃ†гЃЄгЃ®гЃ‹
+		//гЃЉй‚Єй­”гЃ®й–ѕеЂ¤гЃ®е¤‰е‹•
+		//гЃЉй‚Єй­”еЇѕеїњгЃ®й–ѕеЂ¤гЃ®е¤‰е‹•
 		const auto attackCommands = attackThink();
 
 		const auto command = chainThink(attackCommands);
@@ -70,7 +68,7 @@ private:
 
 		enemyData = simulator.getSimulationData(Share::getEnStage(), now);
 
-		//ЌUЊ‚”»’f
+		//ж”»ж’ѓе€¤ж–­
 		{
 			const auto& myStage = Share::getMyStage();
 			int myObstacle = Share::getMyObstacle();
@@ -81,7 +79,7 @@ private:
 			const auto& myPackArr = myPack.getArray();
 			const auto& mySides = myPack.getSide();
 
-			//ЌUЊ‚”»’иЉЦђ”
+			//ж”»ж’ѓе€¤е®љй–ўж•°
 			const auto shotJudge = [&](const Data& data, const int myScore) {
 
 				const int mySendBlock = score2obstacle(myScore) - myObstacle;
@@ -163,7 +161,7 @@ private:
 		/*
 		if (!commands.empty())
 		{
-			cerr << "ЃI”­‰ОЃI" << endl;
+			cerr << "пјЃз™єзЃ«пјЃ" << endl;
 			return commands;
 		}
 		*/
@@ -183,11 +181,11 @@ private:
 		array<priority_queue<Data>, Turn + 1> qData;
 		array<set<Hash::Type>, Turn> hashSet;
 
-		//gcc‚ЕѓRѓ“ѓpѓCѓ‹‚Е‚«‚И‚©‚Б‚Ѕ
+		//gccгЃ§г‚ігѓігѓ‘г‚¤гѓ«гЃ§гЃЌгЃЄгЃ‹гЃЈгЃџ
 		//qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
 		for (const auto& com : commands) { qData[0].push(com); }
 
-		//gcc‚ЕѓRѓ“ѓpѓCѓ‹‚Е‚«‚И‚©‚Б‚Ѕ
+		//gccгЃ§г‚ігѓігѓ‘г‚¤гѓ«гЃ§гЃЌгЃЄгЃ‹гЃЈгЃџ
 		//Timer timer(1000ms);
 
 		Timer timer(chrono::milliseconds(1800));
@@ -269,7 +267,7 @@ private:
 
 		lastData = Data();
 
-		cerr << "‹l‚Э‚Е‚·" << endl;
+		cerr << "и©°гЃїгЃ§гЃ™" << endl;
 		return Command();
 	}
 
