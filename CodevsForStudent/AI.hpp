@@ -8,18 +8,6 @@ public:
 
 	const string think() {
 
-		//前半部分で、攻撃するかどうかの判断を行う
-		//攻撃判断には探索を行わず、1次譜面のみで判断を行う
-
-		//後半部分で、ブロックの置き方を決める。
-		//探査を行い、なるべく連鎖数を増やす
-
-		//TODO
-		//凝視の改良を行う
-		//本当に打っても大丈夫か
-		//連鎖の伸びはどうなのか
-		//お邪魔の閾値の変動
-		//お邪魔対応の閾値の変動
 		const auto attackCommands = attackThink();
 
 		const auto command = chainThink(attackCommands);
@@ -68,7 +56,7 @@ private:
 
 		enemyData = simulator.getSimulationData(Share::getEnStage(), now);
 
-		//攻撃判断
+		//�S�T��
 		{
 			const auto& myStage = Share::getMyStage();
 			int myObstacle = Share::getMyObstacle();
@@ -79,7 +67,7 @@ private:
 			const auto& myPackArr = myPack.getArray();
 			const auto& mySides = myPack.getSide();
 
-			//攻撃判定関数
+			//���Δ���
 			const auto shotJudge = [&](const Data& data, const int myScore) {
 
 				const int mySendBlock = score2obstacle(myScore) - myObstacle;
@@ -161,7 +149,7 @@ private:
 		/*
 		if (!commands.empty())
 		{
-			cerr << "！発火！" << endl;
+			cerr << "����!" << endl;
 			return commands;
 		}
 		*/
@@ -181,11 +169,11 @@ private:
 		array<priority_queue<Data>, Turn + 1> qData;
 		array<set<Hash::Type>, Turn> hashSet;
 
-		//gccでコンパイルできなかった
+		//gcc�ŃR���p�C���ł��Ȃ�����
 		//qData[0].swap(priority_queue<Data>(commands.begin(), commands.end()));
 		for (const auto& com : commands) { qData[0].push(com); }
 
-		//gccでコンパイルできなかった
+		//gcc�ŃR���p�C���ł��Ȃ�����
 		//Timer timer(1000ms);
 
 		Timer timer(chrono::milliseconds(1800));
@@ -267,7 +255,7 @@ private:
 
 		lastData = Data();
 
-		cerr << "詰みです" << endl;
+		cerr << "�l�݂ł�" << endl;
 		return Command();
 	}
 
